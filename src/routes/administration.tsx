@@ -1,3 +1,4 @@
+import { CurrencyIcon } from "@/components/wsa/CurrencyIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Building2,
@@ -247,7 +248,7 @@ function Administration() {
               {BANK_ACCOUNTS.map((a) => (
                 <div key={a.title} className="soft-tile p-5">
                   <p className="flex items-center gap-2 font-semibold">
-                    <span className="text-xl">{a.flag}</span> {a.title}
+                    <CurrencyIcon code={a.title.slice(0, 3)} /> {a.title}
                     <span
                       className={`ml-auto rounded-full px-2.5 py-1 text-xs font-semibold ${
                         a.status === "Active"

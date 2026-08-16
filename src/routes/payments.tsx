@@ -1,3 +1,4 @@
+import { CurrencyIcon } from "@/components/wsa/CurrencyIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
@@ -78,7 +79,7 @@ function Payments() {
             {balances.map((b) => (
               <div key={b.code} className="soft-tile p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="text-xl">{b.flag}</span> {b.code}
+                  <CurrencyIcon code={b.code} /> {b.code}
                 </p>
                 <p className="mt-2 text-xl font-bold">{b.amount}</p>
                 <p className="text-xs text-muted-foreground">Available Balance</p>
@@ -209,7 +210,7 @@ function Payments() {
                   currency === b.code ? "border-primary text-primary" : "border-border"
                 }`}
               >
-                <span>{b.flag}</span> {b.code}
+                <CurrencyIcon code={b.code} className="h-7 w-7" /> {b.code}
               </button>
             ))}
             <button className="gradient-primary ml-auto flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">
