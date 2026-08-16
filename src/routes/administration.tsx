@@ -330,7 +330,7 @@ function Administration() {
                 ["Trusted Devices", "3 devices", ""],
                 ["Security Questions", "3 questions set", ""],
               ].map(([title, sub, badge]) => (
-                <div key={title} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-4">
+                <div key={title} className="flex items-center gap-3 soft-tile p-4">
                   <ShieldCheck className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-sm font-semibold">{title}</p>

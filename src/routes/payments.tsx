@@ -132,7 +132,7 @@ function Payments() {
             </a>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex items-center gap-3 rounded-xl bg-secondary/50 p-4">
+            <div className="flex items-center gap-3 soft-tile p-4">
               <FileText className="h-6 w-6 text-primary" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Payment awaiting approval</p>
@@ -143,7 +143,7 @@ function Payments() {
                 Review &amp; Approve
               </button>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-secondary/50 p-4">
+            <div className="flex items-center gap-3 soft-tile p-4">
               <Building2 className="h-6 w-6 text-warning" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold">GBP bank account not set up</p>
