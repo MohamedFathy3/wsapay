@@ -36,7 +36,7 @@ export const Route = createFileRoute("/payments")({
 const SIDEBAR = {
   title: "PAYMENTS",
   items: [
-    { label: "Payment Processing", hint: undefined, to: "/payments" },
+    { label: "Payment Processing", to: "/payments" },
     { label: "Send Payment", hint: "Pay a partner", to: "/payments" },
     { label: "Transfer to Partner", hint: "Partner-to-partner transfer", to: "/payments" },
     { label: "Withdraw Funds", hint: "Send to your bank account", to: "/payments" },
