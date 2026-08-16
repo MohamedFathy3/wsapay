@@ -59,7 +59,7 @@ function Dashboard() {
     <AppShell>
       <div className="flex flex-wrap items-start gap-6">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Remon 👋</h1>
+          <h1 className="text-3xl font-bold">Welcome back, Remon</h1>
           <p className="mt-1 text-lg font-semibold text-foreground/80">
             Pyramids Freight Services (PFS)
           </p>
