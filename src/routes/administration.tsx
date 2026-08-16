@@ -97,7 +97,7 @@ function Administration() {
           </p>
         </div>
         <div className="ml-auto flex gap-3">
-          <button className="flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
+          <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">
             <Eye className="h-4 w-4" /> View Public Profile
           </button>
           <button className="gradient-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">
@@ -167,7 +167,7 @@ function Administration() {
                 ["Pending Actions", "1", "Items to Complete"],
                 ["Account Since", "12 Aug 2026", ""],
               ].map(([label, value, hint]) => (
-                <div key={label} className="rounded-xl bg-secondary/50 p-4">
+                <div key={label} className="soft-tile p-4">
                   <p className="text-sm text-muted-foreground">{label}</p>
                   <p className="mt-1 text-xl font-bold text-primary">{value}</p>
                   {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
@@ -245,7 +245,7 @@ function Administration() {
             </p>
             <div className="mt-5 grid gap-4 lg:grid-cols-3">
               {BANK_ACCOUNTS.map((a) => (
-                <div key={a.title} className="rounded-xl bg-secondary/50 p-5">
+                <div key={a.title} className="soft-tile p-5">
                   <p className="flex items-center gap-2 font-semibold">
                     <span className="text-xl">{a.flag}</span> {a.title}
                     <span

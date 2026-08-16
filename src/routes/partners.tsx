@@ -47,7 +47,7 @@ function Partners() {
           </p>
         </div>
         <div className="ml-auto flex gap-3">
-          <button className="flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
+          <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">
             <Info className="h-4 w-4" /> Partner Guidelines
           </button>
           <button className="gradient-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">

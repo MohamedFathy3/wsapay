@@ -66,7 +66,7 @@ function Payments() {
             Send payments, withdraw funds and manage your account funding.
           </p>
         </div>
-        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">
           <Settings className="h-4 w-4" /> Payment Limits &amp; Settings
         </button>
       </div>
@@ -76,7 +76,7 @@ function Payments() {
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {balances.map((b) => (
-              <div key={b.code} className="rounded-xl bg-secondary/50 p-4">
+              <div key={b.code} className="soft-tile p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <span className="text-xl">{b.flag}</span> {b.code}
                 </p>
@@ -99,8 +99,8 @@ function Payments() {
           <h2 className="font-semibold">Quick Actions</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-4">
             {ACTIONS.map(({ icon: Icon, title, body, cta, solid }) => (
-              <div key={title} className="rounded-xl bg-secondary/50 p-4 text-center">
-                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
+              <div key={title} className="soft-tile hover-lift p-4 text-center">
+                <span className="icon-tile mx-auto h-11 w-11">
                   <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold">{title}</p>

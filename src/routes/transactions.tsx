@@ -31,7 +31,7 @@ function Transactions() {
             All payments, deposits and withdrawals across your WSA Pay accounts.
           </p>
         </div>
-        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">
           <Download className="h-4 w-4" /> Export Statement
         </button>
       </div>
