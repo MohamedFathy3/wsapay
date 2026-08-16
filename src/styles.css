@@ -102,6 +102,7 @@
   --gradient-primary: linear-gradient(135deg, oklch(0.42 0.21 303), oklch(0.52 0.22 320));
   --shadow-card: 0 1px 2px oklch(0.3 0.06 300 / 0.06), 0 8px 24px -12px oklch(0.3 0.1 300 / 0.18);
   --shadow-elevated: 0 24px 60px -24px oklch(0.25 0.12 305 / 0.35);
+  --shadow-soft: 0 1px 2px oklch(0.3 0.06 300 / 0.04), 0 12px 32px -20px oklch(0.3 0.1 300 / 0.16);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
