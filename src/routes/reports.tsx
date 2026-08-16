@@ -33,9 +33,9 @@ function Reports() {
 
       <div className="mt-6 grid gap-6 md:grid-cols-3">
         {REPORTS.map(({ icon: Icon, title, body }) => (
-          <div key={title} className="surface-card p-6">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-              <Icon className="h-5 w-5 text-primary" />
+          <div key={title} className="surface-card p-6 hover-lift">
+            <span className="icon-tile h-12 w-12">
+              <Icon className="h-5 w-5" />
             </span>
             <p className="mt-4 font-semibold">{title}</p>
             <p className="mt-1 text-sm text-muted-foreground">{body}</p>

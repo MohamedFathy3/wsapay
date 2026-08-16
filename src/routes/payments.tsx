@@ -101,7 +101,7 @@ function Payments() {
             {ACTIONS.map(({ icon: Icon, title, body, cta, solid }) => (
               <div key={title} className="rounded-xl bg-secondary/50 p-4 text-center">
                 <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-                  <Icon className="h-5 w-5 text-primary" />
+                  <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold">{title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{body}</p>

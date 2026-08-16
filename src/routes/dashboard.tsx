@@ -167,7 +167,7 @@ function Dashboard() {
             {CHART.map((v, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-t bg-primary/70"
+                className="flex-1 rounded-t bg-[image:var(--gradient-primary)] opacity-85"
                 style={{ height: `${(v / max) * 100}%` }}
               />
             ))}
