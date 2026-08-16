@@ -5,8 +5,11 @@ import {
   ArrowUpFromLine,
   Building2,
   Download,
+  DollarSign,
+  Euro,
   FileText,
   Info,
+  PoundSterling,
   Plus,
   Send,
   ShieldAlert,
@@ -46,6 +49,8 @@ const QUICK = [
 
 const CHART = [2100, 1800, 2400, 1500, 2600, 2200, 1700, 3000, 5200, 3600, 4100, 4600, 4000, 4300, 5100, 5900, 6800];
 
+const CURRENCY_ICON = { USD: DollarSign, EUR: Euro, GBP: PoundSterling } as const;
+
 function Dashboard() {
   const [currency, setCurrency] = useState<keyof typeof depositAccounts>("USD");
   const max = Math.max(...CHART);
@@ -83,18 +88,24 @@ function Dashboard() {
         <div className="surface-card p-6">
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {balances.map((b) => (
-              <div key={b.code} className="rounded-xl bg-secondary/50 p-5">
-                <p className="flex items-center gap-2 font-semibold">
-                  <span className="text-2xl">{b.flag}</span> {b.code}
-                </p>
-                <p className="mt-3 text-2xl font-bold">{b.amount}</p>
-                <p className="text-sm text-muted-foreground">{b.label}</p>
-                <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
-                  {b.ready ? "View Activity" : "Set Up"} <ArrowRight className="h-4 w-4" />
-                </p>
-              </div>
-            ))}
+            {balances.map((b) => {
+              const Icon = CURRENCY_ICON[b.code as keyof typeof CURRENCY_ICON];
+              return (
+                <div key={b.code} className="soft-tile hover-lift p-5">
+                  <p className="flex items-center gap-2.5 font-semibold">
+                    <span className="icon-tile h-9 w-9">
+                      <Icon className="h-4.5 w-4.5" />
+                    </span>
+                    {b.code}
+                  </p>
+                  <p className="mt-3 text-2xl font-bold tracking-tight">{b.amount}</p>
+                  <p className="text-sm text-muted-foreground">{b.label}</p>
+                  <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
+                    {b.ready ? "View Activity" : "Set Up"} <ArrowRight className="h-4 w-4" />
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -120,9 +131,9 @@ function Dashboard() {
           <h2 className="font-semibold">Quick Actions</h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2">
             {QUICK.map(({ icon: Icon, title, body, cta }) => (
-              <div key={title}>
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-                  <Icon className="h-5 w-5 text-primary" />
+              <div key={title} className="soft-tile hover-lift p-4">
+                <span className="icon-tile h-11 w-11">
+                  <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 font-semibold">{title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{body}</p>
@@ -146,7 +157,7 @@ function Dashboard() {
               ["Pending", "$3,200", "text-warning"],
               ["Transactions", "27", "text-primary"],
             ].map(([label, value, tone]) => (
-              <div key={label} className="rounded-xl bg-secondary/50 p-4">
+              <div key={label} className="soft-tile p-4">
                 <p className={`text-xs font-semibold ${tone}`}>{label}</p>
                 <p className="mt-1 text-xl font-bold">{value}</p>
               </div>
@@ -210,16 +221,20 @@ function Dashboard() {
             <h2 className="font-semibold">2 Items Need Your Attention</h2>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex gap-3 rounded-xl bg-secondary/50 p-4">
-              <FileText className="h-6 w-6 text-primary" />
+            <div className="flex gap-3 soft-tile p-4">
+              <span className="icon-tile h-10 w-10 shrink-0">
+                <FileText className="h-5 w-5" />
+              </span>
               <div>
                 <p className="text-sm font-semibold">Payment awaiting confirmation</p>
                 <p className="text-xs text-muted-foreground">ABC Logistics – $3,200</p>
                 <p className="mt-2 text-sm font-semibold text-primary">Review Payment →</p>
               </div>
             </div>
-            <div className="flex gap-3 rounded-xl bg-secondary/50 p-4">
-              <Building2 className="h-6 w-6 text-warning" />
+            <div className="flex gap-3 soft-tile p-4">
+              <span className="icon-tile h-10 w-10 shrink-0 text-warning">
+                <Building2 className="h-5 w-5" />
+              </span>
               <div>
                 <p className="text-sm font-semibold">Bank information incomplete</p>
                 <p className="text-xs text-muted-foreground">
