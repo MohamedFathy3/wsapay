@@ -162,3 +162,19 @@
     color: var(--color-foreground);
   }
 }
+
+@utility surface-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+@utility brand-panel {
+  background-image: var(--gradient-brand);
+  color: oklch(0.99 0.005 300);
+}
+
+@utility gradient-primary {
+  background-image: var(--gradient-primary);
+}
