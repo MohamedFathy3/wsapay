@@ -1,3 +1,4 @@
+import { CurrencyIcon } from "@/components/wsa/CurrencyIcon";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
@@ -66,7 +67,7 @@ function Payments() {
             Send payments, withdraw funds and manage your account funding.
           </p>
         </div>
-        <button className="ml-auto flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold">
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold">
           <Settings className="h-4 w-4" /> Payment Limits &amp; Settings
         </button>
       </div>
@@ -76,9 +77,9 @@ function Payments() {
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {balances.map((b) => (
-              <div key={b.code} className="rounded-xl border border-border p-4">
+              <div key={b.code} className="soft-tile p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="text-xl">{b.flag}</span> {b.code}
+                  <CurrencyIcon code={b.code} /> {b.code}
                 </p>
                 <p className="mt-2 text-xl font-bold">{b.amount}</p>
                 <p className="text-xs text-muted-foreground">Available Balance</p>
@@ -99,9 +100,9 @@ function Payments() {
           <h2 className="font-semibold">Quick Actions</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-4">
             {ACTIONS.map(({ icon: Icon, title, body, cta, solid }) => (
-              <div key={title} className="rounded-xl border border-border p-4 text-center">
-                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-                  <Icon className="h-5 w-5 text-primary" />
+              <div key={title} className="soft-tile hover-lift p-4 text-center">
+                <span className="icon-tile mx-auto h-11 w-11">
+                  <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold">{title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{body}</p>
@@ -109,7 +110,7 @@ function Payments() {
                   className={`mt-4 w-full rounded-lg py-2 text-xs font-semibold ${
                     solid
                       ? "gradient-primary text-primary-foreground"
-                      : "border border-primary/40 text-primary"
+                      : "bg-primary/10 text-primary"
                   }`}
                 >
                   {cta}
@@ -132,18 +133,18 @@ function Payments() {
             </a>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+            <div className="flex items-center gap-3 soft-tile p-4">
               <FileText className="h-6 w-6 text-primary" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Payment awaiting approval</p>
                 <p className="text-xs text-muted-foreground">ABC Logistics • $3,200.00 USD</p>
                 <p className="text-xs text-muted-foreground">Reference: INV-20391 • Created: 12 Aug 2026</p>
               </div>
-              <button className="ml-auto shrink-0 rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary">
+              <button className="ml-auto shrink-0 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
                 Review &amp; Approve
               </button>
             </div>
-            <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+            <div className="flex items-center gap-3 soft-tile p-4">
               <Building2 className="h-6 w-6 text-warning" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold">GBP bank account not set up</p>
@@ -151,7 +152,7 @@ function Payments() {
                   Add your GBP bank account to enable GBP withdrawals.
                 </p>
               </div>
-              <button className="ml-auto shrink-0 rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary">
+              <button className="ml-auto shrink-0 rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
                 Complete Setup
               </button>
             </div>
@@ -167,7 +168,7 @@ function Payments() {
           </div>
           <table className="mt-4 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Date</th>
                 <th className="pb-2 font-medium">Type</th>
                 <th className="pb-2 font-medium">To / From</th>
@@ -178,7 +179,7 @@ function Payments() {
             </thead>
             <tbody>
               {recentActivity.map((r) => (
-                <tr key={r.ref} className="border-b border-border/60 last:border-0">
+                <tr key={r.ref} className="border-b border-border/40 last:border-0">
                   <td className="py-3 text-muted-foreground">{r.date}</td>
                   <td className="py-3">{r.type} Payment</td>
                   <td className="py-3 font-medium">{r.company}</td>
@@ -209,7 +210,7 @@ function Payments() {
                   currency === b.code ? "border-primary text-primary" : "border-border"
                 }`}
               >
-                <span>{b.flag}</span> {b.code}
+                <CurrencyIcon code={b.code} className="h-7 w-7" /> {b.code}
               </button>
             ))}
             <button className="gradient-primary ml-auto flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">

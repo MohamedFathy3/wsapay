@@ -70,7 +70,7 @@ export function AppShell({
 
       <div className="mx-auto flex w-full max-w-[1600px] flex-1 gap-0">
         {sidebar && (
-          <aside className="hidden w-64 shrink-0 border-r border-border bg-card px-4 py-6 lg:block">
+          <aside className="hidden w-64 shrink-0 bg-card px-4 py-6 lg:block">
             <p className="px-2 text-xs font-semibold tracking-widest text-muted-foreground">
               {sidebar.title}
             </p>
@@ -97,12 +97,12 @@ export function AppShell({
                 );
               })}
             </nav>
-            <div className="mt-8 rounded-xl border border-border bg-secondary/60 p-4">
+            <div className="mt-8 rounded-xl bg-secondary/50 bg-secondary/60 p-4">
               <p className="text-sm font-semibold">Need Help?</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Our support team is here to help you.
               </p>
-              <button className="mt-3 w-full rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary">
+              <button className="mt-3 w-full rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
                 Contact Support
               </button>
             </div>

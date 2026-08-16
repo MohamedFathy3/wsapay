@@ -5,8 +5,11 @@ import {
   ArrowUpFromLine,
   Building2,
   Download,
+  DollarSign,
+  Euro,
   FileText,
   Info,
+  PoundSterling,
   Plus,
   Send,
   ShieldAlert,
@@ -46,6 +49,8 @@ const QUICK = [
 
 const CHART = [2100, 1800, 2400, 1500, 2600, 2200, 1700, 3000, 5200, 3600, 4100, 4600, 4000, 4300, 5100, 5900, 6800];
 
+const CURRENCY_ICON = { USD: DollarSign, EUR: Euro, GBP: PoundSterling } as const;
+
 function Dashboard() {
   const [currency, setCurrency] = useState<keyof typeof depositAccounts>("USD");
   const max = Math.max(...CHART);
@@ -54,7 +59,7 @@ function Dashboard() {
     <AppShell>
       <div className="flex flex-wrap items-start gap-6">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Remon 👋</h1>
+          <h1 className="text-3xl font-bold">Welcome back, Remon</h1>
           <p className="mt-1 text-lg font-semibold text-foreground/80">
             Pyramids Freight Services (PFS)
           </p>
@@ -70,10 +75,10 @@ function Dashboard() {
           >
             <Plus className="h-4 w-4" /> Make a Payment
           </Link>
-          <button className="flex h-12 items-center gap-2 rounded-lg border border-primary/40 px-5 text-sm font-semibold text-primary">
+          <button className="flex h-12 items-center gap-2 rounded-lg bg-primary/10 px-5 text-sm font-semibold text-primary">
             <ArrowDownToLine className="h-4 w-4" /> Deposit Funds
           </button>
-          <button className="flex h-12 items-center gap-2 rounded-lg border border-border px-5 text-sm font-semibold">
+          <button className="flex h-12 items-center gap-2 rounded-lg bg-secondary px-5 text-sm font-semibold">
             More Actions
           </button>
         </div>
@@ -83,18 +88,24 @@ function Dashboard() {
         <div className="surface-card p-6">
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {balances.map((b) => (
-              <div key={b.code} className="rounded-xl border border-border p-5">
-                <p className="flex items-center gap-2 font-semibold">
-                  <span className="text-2xl">{b.flag}</span> {b.code}
-                </p>
-                <p className="mt-3 text-2xl font-bold">{b.amount}</p>
-                <p className="text-sm text-muted-foreground">{b.label}</p>
-                <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
-                  {b.ready ? "View Activity" : "Set Up"} <ArrowRight className="h-4 w-4" />
-                </p>
-              </div>
-            ))}
+            {balances.map((b) => {
+              const Icon = CURRENCY_ICON[b.code as keyof typeof CURRENCY_ICON];
+              return (
+                <div key={b.code} className="soft-tile hover-lift p-5">
+                  <p className="flex items-center gap-2.5 font-semibold">
+                    <span className="icon-tile h-9 w-9">
+                      <Icon className="h-4.5 w-4.5" />
+                    </span>
+                    {b.code}
+                  </p>
+                  <p className="mt-3 text-2xl font-bold tracking-tight">{b.amount}</p>
+                  <p className="text-sm text-muted-foreground">{b.label}</p>
+                  <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
+                    {b.ready ? "View Activity" : "Set Up"} <ArrowRight className="h-4 w-4" />
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -106,10 +117,10 @@ function Dashboard() {
           <p className="mt-1 text-xs text-muted-foreground">
             Indicative only. Currency conversion not applied.
           </p>
-          <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/40 text-sm font-semibold text-primary">
+          <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary/10 text-sm font-semibold text-primary">
             <ArrowUpFromLine className="h-4 w-4" /> Request Withdrawal
           </button>
-          <button className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold">
+          <button className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-semibold">
             <FileText className="h-4 w-4" /> View Statements
           </button>
         </div>
@@ -120,9 +131,9 @@ function Dashboard() {
           <h2 className="font-semibold">Quick Actions</h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2">
             {QUICK.map(({ icon: Icon, title, body, cta }) => (
-              <div key={title}>
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-                  <Icon className="h-5 w-5 text-primary" />
+              <div key={title} className="soft-tile hover-lift p-4">
+                <span className="icon-tile h-11 w-11">
+                  <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 font-semibold">{title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{body}</p>
@@ -146,7 +157,7 @@ function Dashboard() {
               ["Pending", "$3,200", "text-warning"],
               ["Transactions", "27", "text-primary"],
             ].map(([label, value, tone]) => (
-              <div key={label} className="rounded-xl border border-border p-4">
+              <div key={label} className="soft-tile p-4">
                 <p className={`text-xs font-semibold ${tone}`}>{label}</p>
                 <p className="mt-1 text-xl font-bold">{value}</p>
               </div>
@@ -156,7 +167,7 @@ function Dashboard() {
             {CHART.map((v, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-t bg-primary/70"
+                className="flex-1 rounded-t bg-[image:var(--gradient-primary)] opacity-85"
                 style={{ height: `${(v / max) * 100}%` }}
               />
             ))}
@@ -181,7 +192,7 @@ function Dashboard() {
           </div>
           <table className="mt-4 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Date</th>
                 <th className="pb-2 font-medium">Company</th>
                 <th className="pb-2 font-medium">Reference</th>
@@ -191,7 +202,7 @@ function Dashboard() {
             </thead>
             <tbody>
               {recentActivity.map((r) => (
-                <tr key={r.ref} className="border-b border-border/60 last:border-0">
+                <tr key={r.ref} className="border-b border-border/40 last:border-0">
                   <td className="py-3 text-muted-foreground">{r.date}</td>
                   <td className="py-3 font-medium">{r.company}</td>
                   <td className="py-3 text-muted-foreground">{r.ref}</td>
@@ -210,16 +221,20 @@ function Dashboard() {
             <h2 className="font-semibold">2 Items Need Your Attention</h2>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex gap-3 rounded-xl border border-border p-4">
-              <FileText className="h-6 w-6 text-primary" />
+            <div className="flex gap-3 soft-tile p-4">
+              <span className="icon-tile h-10 w-10 shrink-0">
+                <FileText className="h-5 w-5" />
+              </span>
               <div>
                 <p className="text-sm font-semibold">Payment awaiting confirmation</p>
                 <p className="text-xs text-muted-foreground">ABC Logistics – $3,200</p>
                 <p className="mt-2 text-sm font-semibold text-primary">Review Payment →</p>
               </div>
             </div>
-            <div className="flex gap-3 rounded-xl border border-border p-4">
-              <Building2 className="h-6 w-6 text-warning" />
+            <div className="flex gap-3 soft-tile p-4">
+              <span className="icon-tile h-10 w-10 shrink-0 text-warning">
+                <Building2 className="h-5 w-5" />
+              </span>
               <div>
                 <p className="text-sm font-semibold">Bank information incomplete</p>
                 <p className="text-xs text-muted-foreground">
@@ -252,7 +267,7 @@ function Dashboard() {
                   <span className="block truncate text-sm font-semibold">{name}</span>
                   <span className="block text-xs text-muted-foreground">{city}</span>
                 </span>
-                <button className="ml-auto rounded-lg border border-primary/40 px-4 py-1.5 text-xs font-semibold text-primary">
+                <button className="ml-auto rounded-lg bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
                   Pay
                 </button>
               </div>
@@ -284,13 +299,13 @@ function Dashboard() {
                 className={`rounded-lg px-4 py-2 text-sm font-semibold ${
                   currency === c
                     ? "gradient-primary text-primary-foreground"
-                    : "border border-border text-foreground"
+                    : "bg-secondary text-foreground"
                 }`}
               >
                 {c}
               </button>
             ))}
-            <button className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold">
+            <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">
               <Download className="h-4 w-4" /> Download Details
             </button>
           </div>
