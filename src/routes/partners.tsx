@@ -103,7 +103,7 @@ function Partners() {
             </thead>
             <tbody>
               {list.map((p) => (
-                <tr key={p.id} className="border-b border-border/40/40 last:border-0">
+                <tr key={p.id} className="border-b border-border/40 last:border-0">
                   <td className="py-3 pr-3 font-medium">{p.name}</td>
                   <td className="py-3 text-muted-foreground">{p.city}</td>
                   <td className="py-3 text-muted-foreground">{p.country}</td>
@@ -146,7 +146,7 @@ function Partners() {
             </thead>
             <tbody>
               {selectedPayees.map((p) => (
-                <tr key={p.id} className="border-b border-border/40/40 last:border-0">
+                <tr key={p.id} className="border-b border-border/40 last:border-0">
                   <td className="py-3 pr-3 font-medium">{p.name}</td>
                   <td className="py-3 text-muted-foreground">{p.city}</td>
                   <td className="py-3 text-muted-foreground">{p.country}</td>

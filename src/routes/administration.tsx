@@ -208,7 +208,7 @@ function Administration() {
             </thead>
             <tbody>
               {companyUsers.map((u) => (
-                <tr key={u.email} className="border-b border-border/40/40 last:border-0">
+                <tr key={u.email} className="border-b border-border/40 last:border-0">
                   <td className="py-3">
                     <span className="flex items-center gap-2">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-primary text-xs font-bold text-primary-foreground">
@@ -362,7 +362,7 @@ function Administration() {
                 ["09 Aug 2026, 02:10 PM", "Cairo, Egypt"],
                 ["08 Aug 2026, 10:33 AM", "Alexandria, Egypt"],
               ].map(([when, where]) => (
-                <div key={when} className="flex items-center gap-3 border-b border-border/40/40 pb-3 last:border-0">
+                <div key={when} className="flex items-center gap-3 border-b border-border/40 pb-3 last:border-0">
                   <div>
                     <p className="font-medium">{when}</p>
                     <p className="text-xs text-muted-foreground">{where}</p>

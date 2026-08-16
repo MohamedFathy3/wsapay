@@ -191,7 +191,7 @@ function Dashboard() {
             </thead>
             <tbody>
               {recentActivity.map((r) => (
-                <tr key={r.ref} className="border-b border-border/40/40 last:border-0">
+                <tr key={r.ref} className="border-b border-border/40 last:border-0">
                   <td className="py-3 text-muted-foreground">{r.date}</td>
                   <td className="py-3 font-medium">{r.company}</td>
                   <td className="py-3 text-muted-foreground">{r.ref}</td>
