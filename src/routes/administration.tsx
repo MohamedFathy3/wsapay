@@ -97,7 +97,7 @@ function Administration() {
           </p>
         </div>
         <div className="ml-auto flex gap-3">
-          <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold">
+          <button className="flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
             <Eye className="h-4 w-4" /> View Public Profile
           </button>
           <button className="gradient-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">
@@ -118,7 +118,7 @@ function Administration() {
         </div>
       </div>
 
-      <div className="mt-6 flex gap-6 border-b border-border">
+      <div className="mt-6 flex gap-6 border-b border-border/40">
         {TABS.map((t) => (
           <button
             key={t}
@@ -167,7 +167,7 @@ function Administration() {
                 ["Pending Actions", "1", "Items to Complete"],
                 ["Account Since", "12 Aug 2026", ""],
               ].map(([label, value, hint]) => (
-                <div key={label} className="rounded-xl border border-border p-4">
+                <div key={label} className="rounded-xl bg-secondary/50 p-4">
                   <p className="text-sm text-muted-foreground">{label}</p>
                   <p className="mt-1 text-xl font-bold text-primary">{value}</p>
                   {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
@@ -185,20 +185,20 @@ function Administration() {
             Manage users, roles and permissions for your WSA Pay account.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <div className="flex min-w-64 flex-1 items-center gap-2 rounded-lg border border-input px-3">
+            <div className="flex min-w-64 flex-1 items-center gap-2 rounded-lg bg-secondary/70 px-3">
               <Search className="h-4 w-4 text-muted-foreground" />
               <input
                 placeholder="Search users by name or email"
                 className="h-10 w-full bg-transparent text-sm outline-none"
               />
             </div>
-            <select className="h-10 rounded-lg border border-input bg-card px-3 text-sm">
+            <select className="h-10 rounded-lg bg-secondary/70 bg-card px-3 text-sm">
               <option>All Roles</option>
             </select>
           </div>
           <table className="mt-5 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Name</th>
                 <th className="pb-2 font-medium">Email</th>
                 <th className="pb-2 font-medium">Role</th>
@@ -208,7 +208,7 @@ function Administration() {
             </thead>
             <tbody>
               {companyUsers.map((u) => (
-                <tr key={u.email} className="border-b border-border/60 last:border-0">
+                <tr key={u.email} className="border-b border-border/40/40 last:border-0">
                   <td className="py-3">
                     <span className="flex items-center gap-2">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full gradient-primary text-xs font-bold text-primary-foreground">
@@ -245,7 +245,7 @@ function Administration() {
             </p>
             <div className="mt-5 grid gap-4 lg:grid-cols-3">
               {BANK_ACCOUNTS.map((a) => (
-                <div key={a.title} className="rounded-xl border border-border p-5">
+                <div key={a.title} className="rounded-xl bg-secondary/50 p-5">
                   <p className="flex items-center gap-2 font-semibold">
                     <span className="text-xl">{a.flag}</span> {a.title}
                     <span
@@ -269,10 +269,10 @@ function Administration() {
                         ))}
                       </dl>
                       <div className="mt-4 flex gap-3">
-                        <button className="flex-1 rounded-lg border border-border py-2 text-xs font-semibold">
+                        <button className="flex-1 rounded-lg bg-secondary py-2 text-xs font-semibold">
                           View Details
                         </button>
-                        <button className="flex-1 rounded-lg border border-primary/40 py-2 text-xs font-semibold text-primary">
+                        <button className="flex-1 rounded-lg bg-primary/10 py-2 text-xs font-semibold text-primary">
                           Edit
                         </button>
                       </div>
@@ -284,7 +284,7 @@ function Administration() {
                         GBP bank account is not set up yet. Add your GBP bank account to enable GBP
                         withdrawals.
                       </p>
-                      <button className="mt-4 w-full rounded-lg border border-primary/40 py-2 text-xs font-semibold text-primary">
+                      <button className="mt-4 w-full rounded-lg bg-primary/10 py-2 text-xs font-semibold text-primary">
                         + Set Up GBP Account
                       </button>
                     </div>
@@ -330,7 +330,7 @@ function Administration() {
                 ["Trusted Devices", "3 devices", ""],
                 ["Security Questions", "3 questions set", ""],
               ].map(([title, sub, badge]) => (
-                <div key={title} className="flex items-center gap-3 rounded-xl border border-border p-4">
+                <div key={title} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-4">
                   <ShieldCheck className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-sm font-semibold">{title}</p>
@@ -362,7 +362,7 @@ function Administration() {
                 ["09 Aug 2026, 02:10 PM", "Cairo, Egypt"],
                 ["08 Aug 2026, 10:33 AM", "Alexandria, Egypt"],
               ].map(([when, where]) => (
-                <div key={when} className="flex items-center gap-3 border-b border-border/60 pb-3 last:border-0">
+                <div key={when} className="flex items-center gap-3 border-b border-border/40/40 pb-3 last:border-0">
                   <div>
                     <p className="font-medium">{when}</p>
                     <p className="text-xs text-muted-foreground">{where}</p>

@@ -141,7 +141,7 @@ function LoginPage() {
                 <label htmlFor="email" className="text-sm font-medium">
                   Email Address
                 </label>
-                <div className="mt-2 flex items-center rounded-lg border border-input focus-within:ring-2 focus-within:ring-ring/40">
+                <div className="mt-2 flex items-center rounded-lg bg-secondary/70 focus-within:ring-2 focus-within:ring-ring/40">
                   <span className="px-3 text-muted-foreground">
                     <Mail className="h-4 w-4" />
                   </span>
@@ -159,7 +159,7 @@ function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium">
                   Password
                 </label>
-                <div className="mt-2 flex items-center rounded-lg border border-input focus-within:ring-2 focus-within:ring-ring/40">
+                <div className="mt-2 flex items-center rounded-lg bg-secondary/70 focus-within:ring-2 focus-within:ring-ring/40">
                   <span className="px-3 text-muted-foreground">
                     <Lock className="h-4 w-4" />
                   </span>

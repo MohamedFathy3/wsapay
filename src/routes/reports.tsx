@@ -39,7 +39,7 @@ function Reports() {
             </span>
             <p className="mt-4 font-semibold">{title}</p>
             <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-            <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-primary/40 py-2.5 text-sm font-semibold text-primary">
+            <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 py-2.5 text-sm font-semibold text-primary">
               <Download className="h-4 w-4" /> Download
             </button>
           </div>

@@ -31,14 +31,14 @@ function Transactions() {
             All payments, deposits and withdrawals across your WSA Pay accounts.
           </p>
         </div>
-        <button className="ml-auto flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold">
+        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
           <Download className="h-4 w-4" /> Export Statement
         </button>
       </div>
 
       <div className="mt-6 surface-card p-6">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex min-w-64 flex-1 items-center gap-2 rounded-lg border border-input px-3">
+          <div className="flex min-w-64 flex-1 items-center gap-2 rounded-lg bg-secondary/70 px-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
               placeholder="Search by company, reference or amount..."
@@ -46,7 +46,7 @@ function Transactions() {
             />
           </div>
           {["All Currencies", "All Types", "All Statuses"].map((f) => (
-            <select key={f} className="h-10 rounded-lg border border-input bg-card px-3 text-sm">
+            <select key={f} className="h-10 rounded-lg bg-secondary/70 bg-card px-3 text-sm">
               <option>{f}</option>
             </select>
           ))}
@@ -54,7 +54,7 @@ function Transactions() {
 
         <table className="mt-5 w-full text-sm">
           <thead className="text-xs text-muted-foreground">
-            <tr className="border-b border-border text-left">
+            <tr className="border-b border-border/40 text-left">
               <th className="pb-2 font-medium">Date</th>
               <th className="pb-2 font-medium">Company</th>
               <th className="pb-2 font-medium">Type</th>
@@ -65,7 +65,7 @@ function Transactions() {
           </thead>
           <tbody>
             {ROWS.map((r) => (
-              <tr key={r.ref} className="border-b border-border/60 last:border-0">
+              <tr key={r.ref} className="border-b border-border/40/40 last:border-0">
                 <td className="py-3 text-muted-foreground">{r.date}</td>
                 <td className="py-3 font-medium">{r.company}</td>
                 <td className="py-3">{r.type}</td>

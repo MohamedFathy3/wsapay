@@ -70,10 +70,10 @@ function Dashboard() {
           >
             <Plus className="h-4 w-4" /> Make a Payment
           </Link>
-          <button className="flex h-12 items-center gap-2 rounded-lg border border-primary/40 px-5 text-sm font-semibold text-primary">
+          <button className="flex h-12 items-center gap-2 rounded-lg bg-primary/10 px-5 text-sm font-semibold text-primary">
             <ArrowDownToLine className="h-4 w-4" /> Deposit Funds
           </button>
-          <button className="flex h-12 items-center gap-2 rounded-lg border border-border px-5 text-sm font-semibold">
+          <button className="flex h-12 items-center gap-2 rounded-lg bg-secondary px-5 text-sm font-semibold">
             More Actions
           </button>
         </div>
@@ -84,7 +84,7 @@ function Dashboard() {
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {balances.map((b) => (
-              <div key={b.code} className="rounded-xl border border-border p-5">
+              <div key={b.code} className="rounded-xl bg-secondary/50 p-5">
                 <p className="flex items-center gap-2 font-semibold">
                   <span className="text-2xl">{b.flag}</span> {b.code}
                 </p>
@@ -106,10 +106,10 @@ function Dashboard() {
           <p className="mt-1 text-xs text-muted-foreground">
             Indicative only. Currency conversion not applied.
           </p>
-          <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/40 text-sm font-semibold text-primary">
+          <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary/10 text-sm font-semibold text-primary">
             <ArrowUpFromLine className="h-4 w-4" /> Request Withdrawal
           </button>
-          <button className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold">
+          <button className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-semibold">
             <FileText className="h-4 w-4" /> View Statements
           </button>
         </div>
@@ -146,7 +146,7 @@ function Dashboard() {
               ["Pending", "$3,200", "text-warning"],
               ["Transactions", "27", "text-primary"],
             ].map(([label, value, tone]) => (
-              <div key={label} className="rounded-xl border border-border p-4">
+              <div key={label} className="rounded-xl bg-secondary/50 p-4">
                 <p className={`text-xs font-semibold ${tone}`}>{label}</p>
                 <p className="mt-1 text-xl font-bold">{value}</p>
               </div>
@@ -181,7 +181,7 @@ function Dashboard() {
           </div>
           <table className="mt-4 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Date</th>
                 <th className="pb-2 font-medium">Company</th>
                 <th className="pb-2 font-medium">Reference</th>
@@ -191,7 +191,7 @@ function Dashboard() {
             </thead>
             <tbody>
               {recentActivity.map((r) => (
-                <tr key={r.ref} className="border-b border-border/60 last:border-0">
+                <tr key={r.ref} className="border-b border-border/40/40 last:border-0">
                   <td className="py-3 text-muted-foreground">{r.date}</td>
                   <td className="py-3 font-medium">{r.company}</td>
                   <td className="py-3 text-muted-foreground">{r.ref}</td>
@@ -210,7 +210,7 @@ function Dashboard() {
             <h2 className="font-semibold">2 Items Need Your Attention</h2>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex gap-3 rounded-xl border border-border p-4">
+            <div className="flex gap-3 rounded-xl bg-secondary/50 p-4">
               <FileText className="h-6 w-6 text-primary" />
               <div>
                 <p className="text-sm font-semibold">Payment awaiting confirmation</p>
@@ -218,7 +218,7 @@ function Dashboard() {
                 <p className="mt-2 text-sm font-semibold text-primary">Review Payment →</p>
               </div>
             </div>
-            <div className="flex gap-3 rounded-xl border border-border p-4">
+            <div className="flex gap-3 rounded-xl bg-secondary/50 p-4">
               <Building2 className="h-6 w-6 text-warning" />
               <div>
                 <p className="text-sm font-semibold">Bank information incomplete</p>
@@ -252,7 +252,7 @@ function Dashboard() {
                   <span className="block truncate text-sm font-semibold">{name}</span>
                   <span className="block text-xs text-muted-foreground">{city}</span>
                 </span>
-                <button className="ml-auto rounded-lg border border-primary/40 px-4 py-1.5 text-xs font-semibold text-primary">
+                <button className="ml-auto rounded-lg bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
                   Pay
                 </button>
               </div>
@@ -284,13 +284,13 @@ function Dashboard() {
                 className={`rounded-lg px-4 py-2 text-sm font-semibold ${
                   currency === c
                     ? "gradient-primary text-primary-foreground"
-                    : "border border-border text-foreground"
+                    : "bg-secondary text-foreground"
                 }`}
               >
                 {c}
               </button>
             ))}
-            <button className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold">
+            <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">
               <Download className="h-4 w-4" /> Download Details
             </button>
           </div>

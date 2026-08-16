@@ -47,7 +47,7 @@ function Partners() {
           </p>
         </div>
         <div className="ml-auto flex gap-3">
-          <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold">
+          <button className="flex items-center gap-2 rounded-lg bg-secondary bg-card px-4 py-2.5 text-sm font-semibold">
             <Info className="h-4 w-4" /> Partner Guidelines
           </button>
           <button className="gradient-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground">
@@ -82,7 +82,7 @@ function Partners() {
           <p className="mt-1 text-sm text-muted-foreground">
             For adding your payee(s) please click on below company name and click "Add Payee".
           </p>
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-input px-3">
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-secondary/70 px-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
               value={search}
@@ -93,7 +93,7 @@ function Partners() {
           </div>
           <table className="mt-4 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Company Name</th>
                 <th className="pb-2 font-medium">City</th>
                 <th className="pb-2 font-medium">Country</th>
@@ -103,13 +103,13 @@ function Partners() {
             </thead>
             <tbody>
               {list.map((p) => (
-                <tr key={p.id} className="border-b border-border/60 last:border-0">
+                <tr key={p.id} className="border-b border-border/40/40 last:border-0">
                   <td className="py-3 pr-3 font-medium">{p.name}</td>
                   <td className="py-3 text-muted-foreground">{p.city}</td>
                   <td className="py-3 text-muted-foreground">{p.country}</td>
                   <td className="py-3 text-muted-foreground">{p.id}</td>
                   <td className="py-3">
-                    <button className="rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary">
+                    <button className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
                       Add Payee
                     </button>
                   </td>
@@ -127,7 +127,7 @@ function Partners() {
           <p className="mt-1 text-sm text-muted-foreground">
             For removing your payee(s) please click on below company name and click "Remove Payee".
           </p>
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-input px-3">
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-secondary/70 px-3">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
               placeholder="Search Payees by company name..."
@@ -136,7 +136,7 @@ function Partners() {
           </div>
           <table className="mt-4 w-full text-sm">
             <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border text-left">
+              <tr className="border-b border-border/40 text-left">
                 <th className="pb-2 font-medium">Company Name</th>
                 <th className="pb-2 font-medium">City</th>
                 <th className="pb-2 font-medium">Country</th>
@@ -146,13 +146,13 @@ function Partners() {
             </thead>
             <tbody>
               {selectedPayees.map((p) => (
-                <tr key={p.id} className="border-b border-border/60 last:border-0">
+                <tr key={p.id} className="border-b border-border/40/40 last:border-0">
                   <td className="py-3 pr-3 font-medium">{p.name}</td>
                   <td className="py-3 text-muted-foreground">{p.city}</td>
                   <td className="py-3 text-muted-foreground">{p.country}</td>
                   <td className="py-3 text-muted-foreground">{p.id}</td>
                   <td className="py-3">
-                    <button className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive">
+                    <button className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive">
                       Remove Payee
                     </button>
                   </td>
