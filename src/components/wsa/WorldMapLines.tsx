@@ -1,4 +1,4 @@
-const NODES = [
+const NODES: { x: number; y: number }[] = [
   { x: 148, y: 118 },
   { x: 205, y: 96 },
   { x: 262, y: 150 },
@@ -59,7 +59,7 @@ export function WorldMapLines({ className = "" }: { className?: string }) {
       {LINES.map(([a, b], i) => (
         <path
           key={i}
-          d={arc(NODES[a], NODES[b])}
+          d={arc(NODES[a]!, NODES[b]!)}
           fill="none"
           stroke="url(#wsa-line)"
           strokeWidth="1.2"

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import heroBg from "@/assets/login-hero.jpg";
 import { Logo } from "@/components/wsa/Logo";
+import { WorldMapLines } from "@/components/wsa/WorldMapLines";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -71,6 +72,8 @@ function LoginPage() {
             backgroundPosition: "center",
           }}
         >
+          <WorldMapLines className="pointer-events-none absolute inset-0 h-full w-full opacity-70" />
+          <div className="relative">
           <Logo light />
           <h1 className="mt-12 max-w-md text-4xl font-extrabold leading-tight text-white lg:text-5xl">
             Business payments,
@@ -110,6 +113,7 @@ function LoginPage() {
                 </p>
               </div>
             </div>
+          </div>
           </div>
         </section>
 
