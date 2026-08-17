@@ -72,7 +72,7 @@ function LoginPage() {
             backgroundPosition: "center",
           }}
         >
-          <WorldMapLines className="pointer-events-none absolute inset-0 h-full w-full opacity-70" />
+          <WorldMapLines className="pointer-events-none absolute inset-x-0 top-1/4 h-3/5 w-full opacity-60" />
           <div className="relative">
           <Logo light />
           <h1 className="mt-12 max-w-md text-4xl font-extrabold leading-tight text-white lg:text-5xl">

@@ -34,7 +34,7 @@ export function WorldMapLines({ className = "" }: { className?: string }) {
       viewBox="0 0 600 340"
       className={className}
       aria-hidden="true"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         <pattern id="wsa-dots" width="7" height="7" patternUnits="userSpaceOnUse">
