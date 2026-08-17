@@ -1,17 +1,13 @@
+import logoAsset from "@/assets/wsa-logo.jpg.asset.json";
+
 export function Logo({ light = false }: { light?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <svg viewBox="0 0 40 40" className="h-8 w-8" aria-hidden="true">
-        <path
-          d="M5 8 L13 32 L20 16 L27 32 L35 8"
-          fill="none"
-          stroke={light ? "white" : "var(--primary)"}
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="31" cy="10" r="4" fill="var(--brand-magenta)" />
-      </svg>
+      <img
+        src={logoAsset.url}
+        alt="WSA Pay logo"
+        className="h-10 w-10 rounded-full bg-white object-contain p-0.5"
+      />
       <span className="leading-none">
         <span
           className={`block text-xl font-extrabold tracking-tight ${light ? "text-white" : "text-foreground"}`}
