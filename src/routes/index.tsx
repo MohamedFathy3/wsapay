@@ -67,12 +67,12 @@ function LoginPage() {
         <section
           className="brand-panel relative overflow-hidden px-8 py-12 lg:px-14 lg:py-16"
           style={{
-            backgroundImage: `linear-gradient(120deg, oklch(0.18 0.08 302 / 0.94), oklch(0.28 0.14 310 / 0.88)), url(${heroBg})`,
+            backgroundImage: `linear-gradient(120deg, oklch(0.34 0.13 302 / 0.9), oklch(0.44 0.17 312 / 0.82)), url(${heroBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          <WorldMapLines className="pointer-events-none absolute inset-x-0 top-1/4 h-3/5 w-full opacity-60" />
+          <WorldMapLines className="pointer-events-none absolute inset-x-0 top-[18%] h-3/5 w-full opacity-90" />
           <div className="relative">
           <Logo light />
           <h1 className="mt-12 max-w-md text-4xl font-extrabold leading-tight text-white lg:text-5xl">
