@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://apipay.wsa-elite.com/api/:path*"
+    },
+    {
+      "source": "/sanctum/:path*",
+      "destination": "https://apipay.wsa-elite.com/sanctum/:path*"
+    }
+  ]
+}
