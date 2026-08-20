@@ -1,8 +1,8 @@
 # WSA Pay Hub
 
 عاوزك تعملي الويب سايت  
-هو عباره عن wsa pay  بيكون تحويلات فلوس بين ال partiner   وايضا بيتكون من 3 حسابات 
-usd  eur gbp  ال ثلاث عملات  اعملي ال في الصوره بالظبط وطبعا  login application form  عاوز نفس الصور يامعلم
+هو عباره عن wsa pay بيكون تحويلات فلوس بين ال partiner وايضا بيتكون من 3 حسابات
+usd eur gbp ال ثلاث عملات اعملي ال في الصوره بالظبط وطبعا login application form عاوز نفس الصور يامعلم
 
 This project was built with [Lovable](https://lovable.dev).
 

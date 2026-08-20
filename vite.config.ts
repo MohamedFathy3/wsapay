@@ -1,15 +1,100 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
-//     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
-//     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+
+// Helper functions للتعامل مع env variables
+const getEnv = (key: string, defaultValue: string): string => {
+  return (process.env[key] as string) || defaultValue;
+};
+
+const getEnvNumber = (key: string, defaultValue: number): number => {
+  const value = process.env[key] as string;
+  return value ? parseInt(value) : defaultValue;
+};
+
+// Helper للـ package version
+const getPackageVersion = (): string => {
+  return (process.env.npm_package_version as string) || "1.0.0";
+};
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
+    nitro: {
+      preset: "node-server",
+    },
+  },
+  vite: {
+    server: {
+      host: getEnv("VITE_DEV_SERVER_HOST", "::"),
+      port: getEnvNumber("VITE_DEV_SERVER_PORT", 7000),
+      proxy: {
+        "/api": {
+          target: getEnv("VITE_API_TARGET", "https://apipay.wsa-elite.com/"),
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, getEnv("VITE_API_REWRITE_PATH", "/api")),
+          configure: (proxy) => {
+            const apiHeaderName = getEnv("VITE_API_HEADER_NAME", "X-Requested-With");
+            const apiHeaderValue = getEnv("VITE_API_HEADER_VALUE", "XMLHttpRequest");
+
+            proxy.on("proxyReq", (proxyReq, req) => {
+              if (getEnv("NODE_ENV", "production") === "development") {
+                console.log("Sending Request:", req.method, req.url);
+              }
+              proxyReq.setHeader(apiHeaderName, apiHeaderValue);
+            });
+
+            proxy.on("proxyRes", (proxyRes, req) => {
+              if (getEnv("NODE_ENV", "production") === "development") {
+                console.log("Response Status:", proxyRes.statusCode, req.url);
+              }
+            });
+          },
+        },
+        "/sanctum": {
+          target: getEnv("VITE_SANCTUM_TARGET", "https://apipay.wsa-elite.com/"),
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq, req) => {
+              if (getEnv("NODE_ENV", "production") === "development") {
+                console.log("Sanctum Request:", req.method, req.url);
+              }
+            });
+          },
+        },
+      },
+    },
+    preview: {
+      host: getEnv("VITE_PREVIEW_SERVER_HOST", "::"),
+      port: getEnvNumber("VITE_PREVIEW_SERVER_PORT", 7002),
+      allowedHosts: getEnv(
+        "VITE_ALLOWED_HOSTS",
+        "wsa-elite.com,localhost,127.0.0.1,::1,.wsa-elite.com",
+      )
+        .split(",")
+        .map((host) => host.trim()),
+    },
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+      },
+    },
+    build: {
+      cssCodeSplit: true,
+      sourcemap: false,
+      // ✅ شلنا entryFileNames ومش بنجبره على اسم معين
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
+          chunkFileNames: "chunks/[name].js",
+          assetFileNames: "assets/[name].[ext]",
+        },
+      },
+    },
+    define: {
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(getPackageVersion()),
+      "import.meta.env.VITE_BUILD_TIME": JSON.stringify(new Date().toISOString()),
+    },
   },
 });

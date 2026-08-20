@@ -7,10 +7,13 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type ReactNode, useState } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppProvider } from "@/contexts/AppContext";
+import { LanguageProvider } from "@/i18n/LanguageContext"; // ✅ استيراد LanguageProvider
 
 function NotFoundComponent() {
   return (
@@ -77,14 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "WSA Pay" },
+      { name: "description", content: "WSA Pay - Business payments platform" },
+      { name: "author", content: "WSA" },
+      { property: "og:title", content: "WSA Pay" },
+      { property: "og:description", content: "Business payments, connected by WSA" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -116,11 +118,46 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // ✅ الحل السحري: نتأكد إننا في المتصفح قبل ما نحمل الـ Providers
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {/* ✅ لو مش في المتصفح (Server) مش هنحمل الـ Providers عشان يمنع الـ 500 */}
+      {isClient ? (
+        <LanguageProvider>
+          {" "}
+          {/* ✅ تم وضع LanguageProvider فوق AppProvider */}
+          <AppProvider>
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              expand={false}
+              duration={4000}
+              theme="light"
+            />
+            <Outlet />
+          </AppProvider>
+        </LanguageProvider>
+      ) : (
+        // ✅ لو في السيرفر (SSR)، نحمل الـ Toaster والـ Outlet بس عشان الموقع يظهر
+        <>
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            expand={false}
+            duration={4000}
+            theme="light"
+          />
+          <Outlet />
+        </>
+      )}
     </QueryClientProvider>
   );
 }

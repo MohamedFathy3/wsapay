@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -14,70 +14,242 @@ import {
   Send,
   ShieldAlert,
   Users,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Banknote,
+  AlertTriangle,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/wsa/AppShell";
-import {
-  balances,
-  depositAccounts,
-  importantNotes,
-  recentActivity,
-} from "@/lib/wsa-data";
+import { useAuth } from "@/hooks/useAuth";
+import { depositAccounts, importantNotes } from "@/lib/wsa-data";
+import { settingService, BankAccount } from "@/services/setting.service";
+import api from "@/lib/api"; // ✅ استيراد الـ api بتاعك
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "WSA Pay Dashboard — Balances & recent activity" },
-      {
-        name: "description",
-        content:
-          "Track USD, EUR and GBP balances, recent partner payments, deposits and withdrawals in your WSA Pay account.",
-      },
-      { property: "og:title", content: "WSA Pay Dashboard" },
-      { property: "og:description", content: "Balances, quick actions and recent WSA Pay activity." },
-    ],
-  }),
+  // ✅ حماية الصفحة: لو مفيش توكن، حول للصفحة الرئيسية (Login)
+  beforeLoad: async () => {
+    const { tokenService } = await import("@/services/token.service");
+    const token = tokenService.getToken();
+    if (!token) {
+      throw redirect({
+        to: "/",
+      });
+    }
+  },
   component: Dashboard,
 });
 
 const QUICK = [
-  { icon: Send, title: "Pay a Partner", body: "Send payment to another WSA member.", cta: "Make Payment" },
-  { icon: ArrowDownToLine, title: "Deposit Funds", body: "Add funds to your WSA Pay account.", cta: "Deposit" },
-  { icon: ArrowUpFromLine, title: "Withdraw Funds", body: "Transfer available funds to your bank account.", cta: "Withdraw" },
-  { icon: Users, title: "Manage Partners", body: "Add or remove companies from your partner list.", cta: "View Partners" },
+  {
+    icon: Send,
+    title: "Pay a Partner",
+    body: "Send payment to another WSA member.",
+    cta: "Make Payment",
+    to: "/payments/send",
+  },
+  {
+    icon: ArrowDownToLine,
+    title: "Deposit Funds",
+    body: "Add funds to your WSA Pay account.",
+    cta: "Deposit",
+    to: "/payments/deposit",
+  },
+  {
+    icon: ArrowUpFromLine,
+    title: "Withdraw Funds",
+    body: "Transfer available funds to your bank account.",
+    cta: "Withdraw",
+    to: "/payments/withdraw",
+  },
+  {
+    icon: Users,
+    title: "Manage Partners",
+    body: "Add or remove companies from your partner list.",
+    cta: "View Partners",
+    to: "/partners",
+  },
 ];
 
-const CHART = [2100, 1800, 2400, 1500, 2600, 2200, 1700, 3000, 5200, 3600, 4100, 4600, 4000, 4300, 5100, 5900, 6800];
-
 const CURRENCY_ICON = { USD: DollarSign, EUR: Euro, GBP: PoundSterling } as const;
+const CURRENCY_SYMBOL = { USD: "$", EUR: "€", GBP: "£" } as const;
+const CURRENCY_COLORS = {
+  USD: "text-blue-600",
+  EUR: "text-purple-600",
+  GBP: "text-green-600",
+} as const;
+
+// ✅ تعريف نوع الـ Response للـ Transfer Report
+interface TransferReportResponse {
+  data: {
+    summary: {
+      totalTransfers: number;
+      approved: number;
+      pending: number;
+      rejected: number;
+    };
+    monthly: Array<{
+      year: number;
+      month: number;
+      monthName: string;
+      transfers: number;
+      approved: number;
+      pending: number;
+      rejected: number;
+      amounts: {
+        USD: { count: number; total: string };
+        EUR: { count: number; total: string };
+        GBP: { count: number; total: string };
+      };
+    }>;
+  };
+  result: string;
+  message: string;
+  status: number;
+}
 
 function Dashboard() {
+  const { user, isLoading } = useAuth();
   const [currency, setCurrency] = useState<keyof typeof depositAccounts>("USD");
-  const max = Math.max(...CHART);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [isLoadingBank, setIsLoadingBank] = useState(true);
+
+  // ✅ State للـ Report
+  const [reportData, setReportData] = useState<TransferReportResponse["data"] | null>(null);
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
+
+  // ✅ استخراج البيانات من user
+  const userData = user;
+  const balances = userData?.balances || [];
+  const lastTransactions = userData?.lastTransactions || [];
+  const pendingTransfer = userData?.pendingTransfer || null;
+  const partners = userData?.Partners || [];
+  const userName = userData?.name || "User";
+  const companyName = userData?.displayName || userData?.email_company || "Company";
+  const memberId = userData?.id ? `WSA${String(userData.id).padStart(6, "0")}` : "WSA000000";
+  const status = userData?.status || "active";
+
+  // ✅ التحقق من اكتمال الملف الشخصي
+  const isProfileComplete =
+    userData?.address_one &&
+    userData?.city &&
+    userData?.state &&
+    userData?.postalCode &&
+    userData?.first_name_administrator;
+
+  // ✅ جلب الحسابات البنكية وجلب الـ Report
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoadingBank(true);
+        setIsLoadingReport(true);
+
+        // جلب الحسابات
+        const accounts = await settingService.getBankAccounts();
+        setBankAccounts(accounts);
+
+        // ✅ جلب الـ Report من الـ API
+        const response = await api.get<TransferReportResponse>("/user/transfer-report");
+        if (response.data.result === "success" && response.data.data) {
+          setReportData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoadingBank(false);
+        setIsLoadingReport(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // ✅ حساب إجمالي الرصيد
+  const totalBalance = balances.reduce((sum, b) => sum + parseFloat(b.balance || "0"), 0);
+  const formattedTotal = totalBalance.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // ✅ إحصائيات المعاملات (من الـ Report)
+  const totalTransactions = reportData?.summary?.totalTransfers || lastTransactions.length;
+  const pendingTransactions =
+    reportData?.summary?.pending || lastTransactions.filter((t) => t.status === "pending").length;
+  const approvedTransactions =
+    reportData?.summary?.approved || lastTransactions.filter((t) => t.status === "approved").length;
+
+  // حساب الإجماليات من المعاملات الأخيرة
+  const totalReceived = lastTransactions
+    .filter((t) => t.type === "add" || t.type === "deposit")
+    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+  const totalSent = lastTransactions
+    .filter((t) => t.type === "withdraw" || t.type === "transfer")
+    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+
+  // ✅ الحسابات اللي رصيدها صفر
+  const zeroBalances = balances.filter((b) => parseFloat(b.balance) === 0);
+  const hasZeroBalance = zeroBalances.length > 0;
+
+  // ✅ تجهيز بيانات الشارت (رسم بياني) من الـ Report
+  // هنعرض بيانات الـ 6 أشهر الأخيرة
+  const chartData = reportData?.monthly?.slice(-6) || [];
+  const chartValues = chartData.map((m) => m.transfers);
+  const chartMax = Math.max(...chartValues, 1);
+
+  // ✅ عرض حالة التحميل
+  if (isLoading || isLoadingReport) {
+    return (
+      <AppShell>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  // ✅ حساب عدد التنبيهات
+  const alertCount =
+    (pendingTransfer ? 1 : 0) + (!isProfileComplete ? 1 : 0) + (hasZeroBalance ? 1 : 0);
 
   return (
     <AppShell>
       <div className="flex flex-wrap items-start gap-6">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Remon</h1>
-          <p className="mt-1 text-lg font-semibold text-foreground/80">
-            Pyramids Freight Services (PFS)
-          </p>
-          <p className="text-sm text-muted-foreground">WSA Member ID: WSA123456</p>
-          <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-success-soft px-3 py-1 text-xs font-semibold text-success">
-            <span className="h-2 w-2 rounded-full bg-success" /> WSA Pay Account Active
+          <h1 className="text-3xl font-bold">Welcome back, {userName}</h1>
+          <p className="mt-1 text-lg font-semibold text-foreground/80">{companyName}</p>
+          <p className="text-sm text-muted-foreground">WSA Member ID: {memberId}</p>
+          <span
+            className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+              status === "approved" || status === "active"
+                ? "bg-success-soft text-success"
+                : "bg-warning-soft text-warning"
+            }`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                status === "approved" || status === "active" ? "bg-success" : "bg-warning"
+              }`}
+            />
+            WSA Pay Account {status === "approved" || status === "active" ? "Active" : "Pending"}
           </span>
         </div>
         <div className="ml-auto flex flex-wrap gap-3">
           <Link
-            to="/payments"
+            to="/payments/send"
             className="gradient-primary flex h-12 items-center gap-2 rounded-lg px-5 text-sm font-semibold text-primary-foreground"
           >
             <Plus className="h-4 w-4" /> Make a Payment
           </Link>
-          <button className="flex h-12 items-center gap-2 rounded-lg bg-primary/10 px-5 text-sm font-semibold text-primary">
+          <Link
+            to="/payments/deposit"
+            className="flex h-12 items-center gap-2 rounded-lg bg-primary/10 px-5 text-sm font-semibold text-primary"
+          >
             <ArrowDownToLine className="h-4 w-4" /> Deposit Funds
-          </button>
+          </Link>
           <button className="flex h-12 items-center gap-2 rounded-lg bg-secondary px-5 text-sm font-semibold">
             More Actions
           </button>
@@ -88,41 +260,79 @@ function Dashboard() {
         <div className="surface-card p-6">
           <h2 className="font-semibold">Your WSA Pay Balances</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {balances.map((b) => {
-              const Icon = CURRENCY_ICON[b.code as keyof typeof CURRENCY_ICON];
-              return (
-                <div key={b.code} className="soft-tile hover-lift p-5">
-                  <p className="flex items-center gap-2.5 font-semibold">
-                    <span className="icon-tile h-9 w-9">
-                      <Icon className="h-4.5 w-4.5" />
-                    </span>
-                    {b.code}
-                  </p>
-                  <p className="mt-3 text-2xl font-bold tracking-tight">{b.amount}</p>
-                  <p className="text-sm text-muted-foreground">{b.label}</p>
-                  <p className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
-                    {b.ready ? "View Activity" : "Set Up"} <ArrowRight className="h-4 w-4" />
-                  </p>
-                </div>
-              );
-            })}
+            {balances.length > 0 ? (
+              balances.map((b) => {
+                const Icon = CURRENCY_ICON[b.currency as keyof typeof CURRENCY_ICON] || DollarSign;
+                const symbol = CURRENCY_SYMBOL[b.currency as keyof typeof CURRENCY_SYMBOL] || "$";
+                const color =
+                  CURRENCY_COLORS[b.currency as keyof typeof CURRENCY_COLORS] || "text-foreground";
+                const isZero = parseFloat(b.balance) === 0;
+                return (
+                  <div
+                    key={b.currency}
+                    className={`soft-tile hover-lift p-5 ${isZero ? "border-2 border-warning/40 bg-warning/5" : ""}`}
+                  >
+                    <p className="flex items-center gap-2.5 font-semibold">
+                      <span className="icon-tile h-9 w-9">
+                        <Icon className="h-4.5 w-4.5" />
+                      </span>
+                      {b.currency}
+                      {isZero && (
+                        <span className="text-[10px] font-normal text-warning bg-warning/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Empty
+                        </span>
+                      )}
+                    </p>
+                    <p className={`mt-3 text-2xl font-bold tracking-tight ${color}`}>
+                      {symbol}
+                      {parseFloat(b.balance).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Available Balance</p>
+                    {isZero && (
+                      <Link
+                        to="/payments/deposit"
+                        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80"
+                      >
+                        <ArrowDownToLine className="h-4 w-4" /> Deposit Now
+                      </Link>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-3 text-center py-8 text-muted-foreground">
+                No balances available
+              </div>
+            )}
           </div>
         </div>
 
         <div className="surface-card p-6">
           <p className="flex items-center gap-2 font-semibold">
-            Total Balance <span className="text-sm font-normal text-muted-foreground">(Approx. USD Equivalent)</span>
+            Total Balance{" "}
+            <span className="text-sm font-normal text-muted-foreground">
+              (Approx. USD Equivalent)
+            </span>
           </p>
-          <p className="mt-3 text-4xl font-bold">$1,540.52</p>
+          <p className="mt-3 text-4xl font-bold">${formattedTotal}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             Indicative only. Currency conversion not applied.
           </p>
-          <button className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+          <Link
+            to="/payments/withdraw"
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary/10 text-sm font-semibold text-primary hover:bg-primary/20"
+          >
             <ArrowUpFromLine className="h-4 w-4" /> Request Withdrawal
-          </button>
-          <button className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-semibold">
+          </Link>
+          <Link
+            to="/transactions"
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-semibold hover:bg-secondary/80"
+          >
             <FileText className="h-4 w-4" /> View Statements
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -130,8 +340,12 @@ function Dashboard() {
         <div className="surface-card p-6">
           <h2 className="font-semibold">Quick Actions</h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2">
-            {QUICK.map(({ icon: Icon, title, body, cta }) => (
-              <div key={title} className="soft-tile hover-lift p-4">
+            {QUICK.map(({ icon: Icon, title, body, cta, to }) => (
+              <Link
+                key={title}
+                to={to}
+                className="soft-tile hover-lift p-4 block transition-colors hover:bg-secondary/50"
+              >
                 <span className="icon-tile h-11 w-11">
                   <Icon className="h-5 w-5" />
                 </span>
@@ -140,7 +354,7 @@ function Dashboard() {
                 <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-primary">
                   {cta} <ArrowRight className="h-3.5 w-3.5" />
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -148,14 +362,16 @@ function Dashboard() {
         <div className="surface-card p-6">
           <h2 className="font-semibold">
             This Month{" "}
-            <span className="text-sm font-normal text-muted-foreground">(01 Aug – 13 Aug 2026)</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              ({new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })})
+            </span>
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-4">
             {[
-              ["Money Received", "$24,850", "text-success"],
-              ["Money Sent", "$18,420", "text-destructive"],
-              ["Pending", "$3,200", "text-warning"],
-              ["Transactions", "27", "text-primary"],
+              ["Money Received", `$${totalReceived.toFixed(2)}`, "text-success"],
+              ["Money Sent", `$${totalSent.toFixed(2)}`, "text-destructive"],
+              ["Pending", String(pendingTransactions), "text-warning"],
+              ["Transactions", String(totalTransactions), "text-primary"],
             ].map(([label, value, tone]) => (
               <div key={label} className="soft-tile p-4">
                 <p className={`text-xs font-semibold ${tone}`}>{label}</p>
@@ -163,21 +379,32 @@ function Dashboard() {
               </div>
             ))}
           </div>
+
+          {/* ✅ الشارت هنا بقى ديناميك بيجيب بيانات من الـ API */}
           <div className="mt-6 flex h-40 items-end gap-1.5">
-            {CHART.map((v, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-t bg-[image:var(--gradient-primary)] opacity-85"
-                style={{ height: `${(v / max) * 100}%` }}
-              />
-            ))}
+            {chartData.length > 0 ? (
+              chartData.map((m, i) => (
+                <div
+                  key={i}
+                  className="flex-1 rounded-t bg-[image:var(--gradient-primary)] opacity-85"
+                  style={{ height: `${(m.transfers / chartMax) * 100}%` }}
+                  title={`${m.monthName} ${m.year}: ${m.transfers} transfers`}
+                />
+              ))
+            ) : (
+              <div className="w-full text-center text-muted-foreground text-xs pt-8">
+                No transfer data available for chart
+              </div>
+            )}
           </div>
           <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-            <span>15 Jul</span>
-            <span>22 Jul</span>
-            <span>29 Jul</span>
-            <span>05 Aug</span>
-            <span>12 Aug</span>
+            {chartData.length > 0 ? (
+              chartData.map((m, i) => <span key={i}>{m.monthName.substring(0, 3)}</span>)
+            ) : (
+              <>
+                <span>No Data</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -186,63 +413,168 @@ function Dashboard() {
         <div className="surface-card p-6">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Recent Activity</h2>
-            <Link to="/transactions" className="flex items-center gap-1 text-sm font-semibold text-primary">
+            <Link
+              to="/transactions"
+              className="flex items-center gap-1 text-sm font-semibold text-primary"
+            >
               View All Transactions <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <table className="mt-4 w-full text-sm">
-            <thead className="text-xs text-muted-foreground">
-              <tr className="border-b border-border/40 text-left">
-                <th className="pb-2 font-medium">Date</th>
-                <th className="pb-2 font-medium">Company</th>
-                <th className="pb-2 font-medium">Reference</th>
-                <th className="pb-2 font-medium">Amount</th>
-                <th className="pb-2 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentActivity.map((r) => (
-                <tr key={r.ref} className="border-b border-border/40 last:border-0">
-                  <td className="py-3 text-muted-foreground">{r.date}</td>
-                  <td className="py-3 font-medium">{r.company}</td>
-                  <td className="py-3 text-muted-foreground">{r.ref}</td>
-                  <td className="py-3">{r.amount}</td>
-                  <td className="py-3">
-                    <StatusPill status={r.status} />
-                  </td>
+          {lastTransactions.length > 0 ? (
+            <table className="mt-4 w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr className="border-b border-border/40 text-left">
+                  <th className="pb-2 font-medium">Date</th>
+                  <th className="pb-2 font-medium">Description</th>
+                  <th className="pb-2 font-medium">Amount</th>
+                  <th className="pb-2 font-medium">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {lastTransactions.slice(0, 5).map((t) => {
+                  const symbol = CURRENCY_SYMBOL[t.currency as keyof typeof CURRENCY_SYMBOL] || "$";
+
+                  // ✅ المنطق الذكي للعلامة (+ أو -)
+                  let sign = "+";
+                  let colorClass = "text-success"; // افتراضي أخضر للإيداع
+
+                  // السحب والتحويلات (فلوس بتطلع من المحفظة) بيكونوا سالب
+                  if (t.type === "withdraw" || t.type === "transfer") {
+                    sign = "-";
+                    colorClass = "text-destructive"; // أحمر
+                  }
+                  // الإيداع والإضافة (فلوس بتدخل المحفظة) بيكونوا موجب
+                  else if (t.type === "deposit" || t.type === "add") {
+                    sign = "+";
+                    colorClass = "text-success"; // أخضر
+                  }
+
+                  return (
+                    <tr key={t.id} className="border-b border-border/40 last:border-0">
+                      <td className="py-3 text-muted-foreground text-xs">
+                        {new Date(t.createdAt).toLocaleDateString("en-US", {
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </td>
+                      <td className="py-3 font-medium text-xs truncate max-w-[120px]">
+                        {t.description || t.type}
+                      </td>
+                      <td className={`py-3 text-xs font-bold ${colorClass}`}>
+                        {sign}
+                        {symbol}
+                        {parseFloat(t.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3">
+                        <StatusPill
+                          status={t.status || (t.type === "add" ? "Completed" : "Processing")}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className="mt-4 text-center py-8 text-muted-foreground">
+              No recent transactions
+            </div>
+          )}
         </div>
 
         <div className="surface-card p-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">2 Items Need Your Attention</h2>
+            <h2 className="font-semibold">
+              Items Need Your Attention
+              {alertCount > 0 && (
+                <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-primary-foreground">
+                  {alertCount}
+                </span>
+              )}
+            </h2>
           </div>
           <div className="mt-4 space-y-4">
-            <div className="flex gap-3 soft-tile p-4">
-              <span className="icon-tile h-10 w-10 shrink-0">
-                <FileText className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Payment awaiting confirmation</p>
-                <p className="text-xs text-muted-foreground">ABC Logistics – $3,200</p>
-                <p className="mt-2 text-sm font-semibold text-primary">Review Payment →</p>
+            {/* ✅ Pending Transfer */}
+            {pendingTransfer && (
+              <div className="flex gap-3 soft-tile p-4 border-2 border-warning/30 bg-warning/5">
+                <span className="icon-tile h-10 w-10 shrink-0 text-warning">
+                  <Clock className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Payment awaiting confirmation</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingTransfer.description || "Pending transfer"} • {pendingTransfer.currency}{" "}
+                    {parseFloat(pendingTransfer.amount).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    To: {pendingTransfer.toUser || `User #${pendingTransfer.toUserId}`}
+                  </p>
+                  <Link
+                    to="/transactions"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80"
+                  >
+                    Review Payment →
+                  </Link>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-3 soft-tile p-4">
-              <span className="icon-tile h-10 w-10 shrink-0 text-warning">
-                <Building2 className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Bank information incomplete</p>
-                <p className="text-xs text-muted-foreground">
-                  Add your GBP bank account before requesting GBP withdrawals.
-                </p>
-                <p className="mt-2 text-sm font-semibold text-primary">Complete Bank Details →</p>
+            )}
+
+            {/* ✅ Zero Balance Alert */}
+            {hasZeroBalance && (
+              <div className="flex gap-3 soft-tile p-4 border-2 border-warning/30 bg-warning/5">
+                <span className="icon-tile h-10 w-10 shrink-0 text-warning">
+                  <AlertTriangle className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Zero balance accounts</p>
+                  <p className="text-xs text-muted-foreground">
+                    {zeroBalances.map((b) => b.currency).join(", ")} accounts have zero balance
+                  </p>
+                  <Link
+                    to="/payments/deposit"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80"
+                  >
+                    Deposit Funds →
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* ✅ Profile Incomplete */}
+            {!isProfileComplete && (
+              <div className="flex gap-3 soft-tile p-4 border-2 border-warning/30 bg-warning/5">
+                <span className="icon-tile h-10 w-10 shrink-0 text-warning">
+                  <AlertCircle className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Complete your profile</p>
+                  <p className="text-xs text-muted-foreground">
+                    Add your company details to improve your WSA Pay experience.
+                  </p>
+                  <Link
+                    to="/profile"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80"
+                  >
+                    Complete Profile →
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* ✅ No pending items */}
+            {!pendingTransfer && !hasZeroBalance && isProfileComplete && (
+              <div className="flex gap-3 soft-tile p-4 border-2 border-success/30 bg-success/5">
+                <span className="icon-tile h-10 w-10 shrink-0 text-success">
+                  <CheckCircle2 className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">All caught up!</p>
+                  <p className="text-xs text-muted-foreground">
+                    No pending items require your attention.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -250,32 +582,45 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Your Partners</h2>
             <Link to="/partners" className="text-sm font-semibold text-primary">
-              View All Partners
+              View All
             </Link>
           </div>
           <div className="mt-4 space-y-3">
-            {[
-              ["A", "ABC Logistics", "Dubai, UAE"],
-              ["G", "Global Cargo Network", "London, UK"],
-              ["X", "XYZ Freight", "Singapore"],
-            ].map(([i, name, city]) => (
-              <div key={name} className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full gradient-primary text-xs font-bold text-primary-foreground">
-                  {i}
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold">{name}</span>
-                  <span className="block text-xs text-muted-foreground">{city}</span>
-                </span>
-                <button className="ml-auto rounded-lg bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-                  Pay
-                </button>
-              </div>
-            ))}
+            {partners.length > 0 ? (
+              partners.slice(0, 3).map((p) => (
+                <div key={p.id} className="flex items-center gap-3 soft-tile p-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full gradient-primary text-xs font-bold text-primary-foreground">
+                    {p.displayName?.[0] || p.name?.[0] || "P"}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
+                      {p.displayName || p.name}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">{p.email}</span>
+                  </span>
+                  {p.favorite && (
+                    <span className="text-xs text-warning shrink-0" title="Favorite">
+                      ⭐
+                    </span>
+                  )}
+                  <Link
+                    to="/payments/send"
+                    className="ml-auto shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
+                  >
+                    Pay
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">No partners available</div>
+            )}
           </div>
-          <button className="mt-5 flex w-full items-center justify-center gap-2 text-sm font-semibold text-primary">
+          <Link
+            to="/partners"
+            className="mt-5 flex w-full items-center justify-center gap-2 text-sm font-semibold text-primary hover:text-primary/80"
+          >
             <Plus className="h-4 w-4" /> Add Trading Partner
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -287,59 +632,62 @@ function Dashboard() {
               <span className="text-sm font-normal text-muted-foreground">(For Deposits)</span>
             </h2>
             <p className="text-sm text-muted-foreground">
-              Use the bank details below to fund your WSA Pay account. Select a currency to view details.
+              Use the bank details below to fund your WSA Pay account.
             </p>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Select Currency:</span>
-            {(Object.keys(depositAccounts) as (keyof typeof depositAccounts)[]).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCurrency(c)}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold ${
-                  currency === c
-                    ? "gradient-primary text-primary-foreground"
-                    : "bg-secondary text-foreground"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-            <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold">
+            <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold hover:bg-secondary/80">
               <Download className="h-4 w-4" /> Download Details
             </button>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-6 rounded-xl bg-secondary/60 p-5 lg:grid-cols-2">
-          <div>
-            <p className="font-semibold">{currency} WSA Pay Deposit Account</p>
-            <dl className="mt-3 space-y-2 text-sm">
-              {depositAccounts[currency].map(([k, v]) => (
-                <div key={k} className="flex gap-4">
-                  <dt className="w-56 shrink-0 text-muted-foreground">{k}</dt>
-                  <dd className="font-medium">{v}</dd>
+        {isLoadingBank ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : bankAccounts.length > 0 ? (
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {bankAccounts.map((account) => (
+              <div
+                key={account.id}
+                className="rounded-xl bg-secondary/60 p-4 border border-border/40"
+              >
+                <p className="font-semibold text-sm">{account.accountName}</p>
+                <p className="text-xs text-muted-foreground mt-1">{account.bankName || "N/A"}</p>
+                <p className="text-xs text-muted-foreground">{account.bankCountry}</p>
+                {account.accountNumber && (
+                  <p className="text-xs font-mono mt-2">Account: {account.accountNumber}</p>
+                )}
+                {account.swift && <p className="text-xs font-mono">SWIFT: {account.swift}</p>}
+                {account.iban && <p className="text-xs font-mono">IBAN: {account.iban}</p>}
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                      account.active
+                        ? "bg-success-soft text-success"
+                        : "bg-destructive/10 text-destructive"
+                    }`}
+                  >
+                    {account.active ? "Active" : "Inactive"}
+                  </span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {account.accountType}
+                  </span>
                 </div>
-              ))}
-            </dl>
+              </div>
+            ))}
           </div>
-          <div>
-            <p className="font-semibold">Important Notes</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              {importantNotes.map((n) => (
-                <li key={n} className="flex gap-2">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  {n}
-                </li>
-              ))}
-            </ul>
+        ) : (
+          <div className="mt-5 text-center py-8 text-muted-foreground">
+            No bank accounts available
           </div>
-        </div>
+        )}
 
         <p className="mt-5 flex items-center gap-2 rounded-xl bg-warning-soft p-4 text-sm">
           <ShieldAlert className="h-5 w-5 text-warning" />
-          Only transfer funds from bank accounts in your company's name. Third-party payments or cash
-          deposits are not accepted.
+          Only transfer funds from bank accounts in your company's name. Third-party payments or
+          cash deposits are not accepted.
         </p>
       </div>
     </AppShell>
@@ -348,10 +696,20 @@ function Dashboard() {
 
 export function StatusPill({ status }: { status: string }) {
   const tone =
-    status === "Completed"
+    status === "approved" || status === "Completed" || status === "completed"
       ? "bg-success-soft text-success"
-      : status === "Processing" || status === "Pending"
+      : status === "pending" || status === "Processing" || status === "processing"
         ? "bg-warning-soft text-warning"
-        : "bg-secondary text-muted-foreground";
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>{status}</span>;
+        : status === "rejected" || status === "Rejected" || status === "cancelled"
+          ? "bg-destructive/10 text-destructive"
+          : "bg-secondary text-muted-foreground";
+  const label =
+    status === "approved"
+      ? "Completed"
+      : status === "pending"
+        ? "Pending"
+        : status === "rejected"
+          ? "Rejected"
+          : status;
+  return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>{label}</span>;
 }

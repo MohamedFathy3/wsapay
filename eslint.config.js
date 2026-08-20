@@ -19,6 +19,7 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
     },
     rules: {
+      "prettier/prettier": ["error", { endOfLine: "auto" }],
       ...reactHooks.configs.recommended.rules,
       "no-restricted-imports": [
         "error",

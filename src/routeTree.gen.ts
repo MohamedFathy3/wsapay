@@ -10,16 +10,40 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdministrationRouteImport } from './routes/administration'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PublicRouteImport } from './routes/public'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as PaymentsIndexRouteImport } from './routes/payments/index'
+import { Route as PaymentsDepositRouteImport } from './routes/payments/deposit'
+import { Route as PaymentsPaymentsRouteImport } from './routes/payments/payments'
+import { Route as PaymentsSendRouteImport } from './routes/payments/send'
+import { Route as PaymentsWithdrawRouteImport } from './routes/payments/withdraw'
+import { Route as PublicComplianceRouteImport } from './routes/public/compliance'
+import { Route as PublicContactRouteImport } from './routes/public/contact'
+import { Route as PublicPrivacyRouteImport } from './routes/public/privacy'
+import { Route as PublicSecurityRouteImport } from './routes/public/security'
+import { Route as PublicSupportRouteImport } from './routes/public/support'
+import { Route as PublicTermsRouteImport } from './routes/public/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdministrationRoute = AdministrationRouteImport.update({
@@ -27,9 +51,19 @@ const AdministrationRoute = AdministrationRouteImport.update({
   path: '/administration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartnersRoute = PartnersRouteImport.update({
@@ -42,9 +76,34 @@ const PaymentsRoute = PaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/public',
+  path: '/public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransactionsRoute = TransactionsRouteImport.update({
@@ -52,72 +111,247 @@ const TransactionsRoute = TransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentsIndexRoute = PaymentsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PaymentsRoute,
+} as any)
+const PaymentsDepositRoute = PaymentsDepositRouteImport.update({
+  id: '/deposit',
+  path: '/deposit',
+  getParentRoute: () => PaymentsRoute,
+} as any)
+const PaymentsPaymentsRoute = PaymentsPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => PaymentsRoute,
+} as any)
+const PaymentsSendRoute = PaymentsSendRouteImport.update({
+  id: '/send',
+  path: '/send',
+  getParentRoute: () => PaymentsRoute,
+} as any)
+const PaymentsWithdrawRoute = PaymentsWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => PaymentsRoute,
+} as any)
+const PublicComplianceRoute = PublicComplianceRouteImport.update({
+  id: '/compliance',
+  path: '/compliance',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicContactRoute = PublicContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicPrivacyRoute = PublicPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicSecurityRoute = PublicSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicSupportRoute = PublicSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicTermsRoute = PublicTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => PublicRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/administration': typeof AdministrationRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
   '/partners': typeof PartnersRoute
-  '/payments': typeof PaymentsRoute
+  '/payments': typeof PaymentsRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/public': typeof PublicRouteWithChildren
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/transactions': typeof TransactionsRoute
+  '/payments/deposit': typeof PaymentsDepositRoute
+  '/payments/payments': typeof PaymentsPaymentsRoute
+  '/payments/send': typeof PaymentsSendRoute
+  '/payments/withdraw': typeof PaymentsWithdrawRoute
+  '/public/compliance': typeof PublicComplianceRoute
+  '/public/contact': typeof PublicContactRoute
+  '/public/privacy': typeof PublicPrivacyRoute
+  '/public/security': typeof PublicSecurityRoute
+  '/public/support': typeof PublicSupportRoute
+  '/public/terms': typeof PublicTermsRoute
+  '/payments/': typeof PaymentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/administration': typeof AdministrationRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
   '/partners': typeof PartnersRoute
-  '/payments': typeof PaymentsRoute
+  '/privacy': typeof PrivacyRoute
+  '/public': typeof PublicRouteWithChildren
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/transactions': typeof TransactionsRoute
+  '/payments/deposit': typeof PaymentsDepositRoute
+  '/payments/payments': typeof PaymentsPaymentsRoute
+  '/payments/send': typeof PaymentsSendRoute
+  '/payments/withdraw': typeof PaymentsWithdrawRoute
+  '/public/compliance': typeof PublicComplianceRoute
+  '/public/contact': typeof PublicContactRoute
+  '/public/privacy': typeof PublicPrivacyRoute
+  '/public/security': typeof PublicSecurityRoute
+  '/public/support': typeof PublicSupportRoute
+  '/public/terms': typeof PublicTermsRoute
+  '/payments': typeof PaymentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/administration': typeof AdministrationRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/help': typeof HelpRoute
   '/partners': typeof PartnersRoute
-  '/payments': typeof PaymentsRoute
+  '/payments': typeof PaymentsRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/public': typeof PublicRouteWithChildren
+  '/register': typeof RegisterRoute
   '/reports': typeof ReportsRoute
+  '/security': typeof SecurityRoute
+  '/terms': typeof TermsRoute
   '/transactions': typeof TransactionsRoute
+  '/payments/deposit': typeof PaymentsDepositRoute
+  '/payments/payments': typeof PaymentsPaymentsRoute
+  '/payments/send': typeof PaymentsSendRoute
+  '/payments/withdraw': typeof PaymentsWithdrawRoute
+  '/public/compliance': typeof PublicComplianceRoute
+  '/public/contact': typeof PublicContactRoute
+  '/public/privacy': typeof PublicPrivacyRoute
+  '/public/security': typeof PublicSecurityRoute
+  '/public/support': typeof PublicSupportRoute
+  '/public/terms': typeof PublicTermsRoute
+  '/payments/': typeof PaymentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/administration'
+    | '/contact'
     | '/dashboard'
+    | '/help'
     | '/partners'
     | '/payments'
+    | '/privacy'
+    | '/public'
+    | '/register'
     | '/reports'
+    | '/security'
+    | '/terms'
     | '/transactions'
+    | '/payments/deposit'
+    | '/payments/payments'
+    | '/payments/send'
+    | '/payments/withdraw'
+    | '/public/compliance'
+    | '/public/contact'
+    | '/public/privacy'
+    | '/public/security'
+    | '/public/support'
+    | '/public/terms'
+    | '/payments/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/administration'
+    | '/contact'
     | '/dashboard'
+    | '/help'
     | '/partners'
-    | '/payments'
+    | '/privacy'
+    | '/public'
+    | '/register'
     | '/reports'
+    | '/security'
+    | '/terms'
     | '/transactions'
+    | '/payments/deposit'
+    | '/payments/payments'
+    | '/payments/send'
+    | '/payments/withdraw'
+    | '/public/compliance'
+    | '/public/contact'
+    | '/public/privacy'
+    | '/public/security'
+    | '/public/support'
+    | '/public/terms'
+    | '/payments'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/administration'
+    | '/contact'
     | '/dashboard'
+    | '/help'
     | '/partners'
     | '/payments'
+    | '/privacy'
+    | '/public'
+    | '/register'
     | '/reports'
+    | '/security'
+    | '/terms'
     | '/transactions'
+    | '/payments/deposit'
+    | '/payments/payments'
+    | '/payments/send'
+    | '/payments/withdraw'
+    | '/public/compliance'
+    | '/public/contact'
+    | '/public/privacy'
+    | '/public/security'
+    | '/public/support'
+    | '/public/terms'
+    | '/payments/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdministrationRoute: typeof AdministrationRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  HelpRoute: typeof HelpRoute
   PartnersRoute: typeof PartnersRoute
-  PaymentsRoute: typeof PaymentsRoute
+  PaymentsRoute: typeof PaymentsRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  PublicRoute: typeof PublicRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
   ReportsRoute: typeof ReportsRoute
+  SecurityRoute: typeof SecurityRoute
+  TermsRoute: typeof TermsRoute
   TransactionsRoute: typeof TransactionsRoute
 }
 
@@ -130,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/administration': {
       id: '/administration'
       path: '/administration'
@@ -137,11 +378,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdministrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partners': {
@@ -158,11 +413,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/public': {
+      id: '/public'
+      path: '/public'
+      fullPath: '/public'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transactions': {
@@ -172,16 +462,142 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payments/': {
+      id: '/payments/'
+      path: '/'
+      fullPath: '/payments/'
+      preLoaderRoute: typeof PaymentsIndexRouteImport
+      parentRoute: typeof PaymentsRoute
+    }
+    '/payments/deposit': {
+      id: '/payments/deposit'
+      path: '/deposit'
+      fullPath: '/payments/deposit'
+      preLoaderRoute: typeof PaymentsDepositRouteImport
+      parentRoute: typeof PaymentsRoute
+    }
+    '/payments/payments': {
+      id: '/payments/payments'
+      path: '/payments'
+      fullPath: '/payments/payments'
+      preLoaderRoute: typeof PaymentsPaymentsRouteImport
+      parentRoute: typeof PaymentsRoute
+    }
+    '/payments/send': {
+      id: '/payments/send'
+      path: '/send'
+      fullPath: '/payments/send'
+      preLoaderRoute: typeof PaymentsSendRouteImport
+      parentRoute: typeof PaymentsRoute
+    }
+    '/payments/withdraw': {
+      id: '/payments/withdraw'
+      path: '/withdraw'
+      fullPath: '/payments/withdraw'
+      preLoaderRoute: typeof PaymentsWithdrawRouteImport
+      parentRoute: typeof PaymentsRoute
+    }
+    '/public/compliance': {
+      id: '/public/compliance'
+      path: '/compliance'
+      fullPath: '/public/compliance'
+      preLoaderRoute: typeof PublicComplianceRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/public/contact': {
+      id: '/public/contact'
+      path: '/contact'
+      fullPath: '/public/contact'
+      preLoaderRoute: typeof PublicContactRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/public/privacy': {
+      id: '/public/privacy'
+      path: '/privacy'
+      fullPath: '/public/privacy'
+      preLoaderRoute: typeof PublicPrivacyRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/public/security': {
+      id: '/public/security'
+      path: '/security'
+      fullPath: '/public/security'
+      preLoaderRoute: typeof PublicSecurityRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/public/support': {
+      id: '/public/support'
+      path: '/support'
+      fullPath: '/public/support'
+      preLoaderRoute: typeof PublicSupportRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/public/terms': {
+      id: '/public/terms'
+      path: '/terms'
+      fullPath: '/public/terms'
+      preLoaderRoute: typeof PublicTermsRouteImport
+      parentRoute: typeof PublicRoute
+    }
   }
 }
 
+interface PaymentsRouteChildren {
+  PaymentsDepositRoute: typeof PaymentsDepositRoute
+  PaymentsPaymentsRoute: typeof PaymentsPaymentsRoute
+  PaymentsSendRoute: typeof PaymentsSendRoute
+  PaymentsWithdrawRoute: typeof PaymentsWithdrawRoute
+  PaymentsIndexRoute: typeof PaymentsIndexRoute
+}
+
+const PaymentsRouteChildren: PaymentsRouteChildren = {
+  PaymentsDepositRoute: PaymentsDepositRoute,
+  PaymentsPaymentsRoute: PaymentsPaymentsRoute,
+  PaymentsSendRoute: PaymentsSendRoute,
+  PaymentsWithdrawRoute: PaymentsWithdrawRoute,
+  PaymentsIndexRoute: PaymentsIndexRoute,
+}
+
+const PaymentsRouteWithChildren = PaymentsRoute._addFileChildren(
+  PaymentsRouteChildren,
+)
+
+interface PublicRouteChildren {
+  PublicComplianceRoute: typeof PublicComplianceRoute
+  PublicContactRoute: typeof PublicContactRoute
+  PublicPrivacyRoute: typeof PublicPrivacyRoute
+  PublicSecurityRoute: typeof PublicSecurityRoute
+  PublicSupportRoute: typeof PublicSupportRoute
+  PublicTermsRoute: typeof PublicTermsRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicComplianceRoute: PublicComplianceRoute,
+  PublicContactRoute: PublicContactRoute,
+  PublicPrivacyRoute: PublicPrivacyRoute,
+  PublicSecurityRoute: PublicSecurityRoute,
+  PublicSupportRoute: PublicSupportRoute,
+  PublicTermsRoute: PublicTermsRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdministrationRoute: AdministrationRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  HelpRoute: HelpRoute,
   PartnersRoute: PartnersRoute,
-  PaymentsRoute: PaymentsRoute,
+  PaymentsRoute: PaymentsRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  PublicRoute: PublicRouteWithChildren,
+  RegisterRoute: RegisterRoute,
   ReportsRoute: ReportsRoute,
+  SecurityRoute: SecurityRoute,
+  TermsRoute: TermsRoute,
   TransactionsRoute: TransactionsRoute,
 }
 export const routeTree = rootRouteImport
