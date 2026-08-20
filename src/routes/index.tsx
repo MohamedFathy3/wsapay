@@ -46,9 +46,21 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const token = tokenService.getToken();
     if (token) {
-      throw redirect({
-        to: "/dashboard",
-      });
+      // ✅ نتحقق من صحة التوكن قبل التوجيه
+      try {
+        const user = await authService.checkAuth();
+        if (user) {
+          throw redirect({
+            to: "/dashboard",
+          });
+        } else {
+          // التوكن مش صحيح، نمسحه
+          tokenService.removeToken();
+        }
+      } catch (error) {
+        // في حالة خطأ، نمسح التوكن ونخليه في login
+        tokenService.removeToken();
+      }
     }
   },
   component: LoginPage,

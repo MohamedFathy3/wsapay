@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-"build": "vite build && cp -r .output/public ./dist",
+    "build": "vite build && cp -r .output/public ./dist",
     "build:dev": "vite build --mode development",
     "preview": "vite preview --port 3005 --host 0.0.0.0",
-"start": "set PORT=3005 && node .output/server/index.mjs",
+    "start": "set PORT=3005 && node .output/server/index.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

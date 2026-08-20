@@ -1,110 +1,76 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// src/hooks/useAuth.ts
-import { useState, useEffect, useCallback } from "react";
+// hooks/useAuth.ts
+import { useEffect, useState } from "react";
 import { authService } from "@/services/auth.service";
 import { tokenService } from "@/services/token.service";
-import type { User } from "@/types/auth.types";
+import { useNavigate } from "@tanstack/react-router";
 
-interface UseAuthReturn {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  error: string | null;
-  role: string | null;
-  checkAuth: () => Promise<void>; // ✅ دالة للتحقق
-}
-
-export const useAuth = (): UseAuthReturn => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+export const useAuth = () => {
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
 
-  // ✅ دالة التحقق من المصادقة
-  const checkAuth = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const token = tokenService.getToken();
-      if (token) {
-        setToken(token);
-        // ✅ استخدم checkAuth من الخدمة
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        setIsLoading(true);
         const userData = await authService.checkAuth();
+
         if (userData) {
           setUser(userData);
-          console.log("✅ User authenticated:", userData.email);
+          setIsAuthenticated(true);
         } else {
-          // لو فشل التحقق، نمسح التوكن
+          // لو مفيش مستخدم، نتأكد إننا clean
           tokenService.removeToken();
           setUser(null);
-          setToken(null);
+          setIsAuthenticated(false);
         }
-      } else {
+      } catch (err) {
+        console.error("Auth check error:", err);
+        tokenService.removeToken();
         setUser(null);
-        setToken(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("❌ Auth check error:", error);
-      setUser(null);
-      setToken(null);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    checkAuth();
   }, []);
 
-  // ✅ تحميل المستخدم عند بدء التطبيق
-  useEffect(() => {
-    const loadUser = async () => {
-      await checkAuth();
-    };
-    loadUser();
-  }, [checkAuth]);
-
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    setError(null);
-
+  const login = async (email: string, password: string) => {
     try {
-      const { user, token } = await authService.login(email, password);
-      setUser(user);
-      setToken(token);
-      console.log("✅ Login successful, role:", user.role);
+      setIsLoading(true);
+      setError(null);
+
+      const result = await authService.login(email, password);
+      setUser(result.user);
+      setIsAuthenticated(true);
+
+      return result;
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        "Login failed";
-      setError(errorMessage);
-      console.error("❌ Login error:", errorMessage);
+      setError(err.message || "Login failed");
+      setIsAuthenticated(false);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
-  const logout = useCallback(() => {
-    console.log("🚪 Logging out...");
+  const logout = () => {
     authService.logout();
     setUser(null);
-    setToken(null);
-    setError(null);
-  }, []);
-
-  const isAuthenticated = authService.isAuthenticated();
-  const role = user?.role || null;
+    setIsAuthenticated(false);
+    navigate({ to: "/" });
+  };
 
   return {
     user,
-    token,
     isLoading,
+    error,
     isAuthenticated,
     login,
     logout,
-    error,
-    role,
-    checkAuth, // ✅ إرجاع دالة التحقق
   };
 };
