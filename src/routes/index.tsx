@@ -210,7 +210,6 @@ function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
                     placeholder="name@company.com"
                     className="h-11 w-full bg-transparent pr-3 text-sm outline-none disabled:opacity-50"
                   />
@@ -239,7 +238,6 @@ function LoginPage() {
                     type="button"
                     aria-label="Toggle password visibility"
                     onClick={() => setShowPassword((v) => !v)}
-                    disabled={isLoading}
                     className="px-3 text-muted-foreground disabled:opacity-50"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -265,7 +263,6 @@ function LoginPage() {
 
               <button
                 type="submit"
-                disabled={isLoading}
                 className="gradient-primary flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold text-primary-foreground shadow-[var(--shadow-elevated)] disabled:opacity-70"
               >
                 {isLoading ? (

@@ -18,15 +18,17 @@ const getPackageVersion = (): string => {
 
 export default defineConfig({
   tanstackStart: {
-    server: { entry: "server" },
+    // server: { entry: "server" },
     nitro: {
       preset: "node-server",
     },
   },
   vite: {
     server: {
-      host: getEnv("VITE_DEV_SERVER_HOST", "::"),
+      host: "0.0.0.0", // ✅ غيرها لـ 0.0.0.0 عشان تقبل أي مضيف
       port: getEnvNumber("VITE_DEV_SERVER_PORT", 7000),
+      strictPort: false, // ✅ يخلي المنفذ يتغير لو مشغول
+      allowedHosts: true, // ✅ صيغة array عشان تتأكد
       proxy: {
         "/api": {
           target: getEnv("VITE_API_TARGET", "https://apipay.wsa-elite.com/"),
@@ -66,14 +68,10 @@ export default defineConfig({
       },
     },
     preview: {
-      host: getEnv("VITE_PREVIEW_SERVER_HOST", "::"),
+      host: "0.0.0.0", // ✅ نفس الشيء للـ preview
       port: getEnvNumber("VITE_PREVIEW_SERVER_PORT", 7002),
-      allowedHosts: getEnv(
-        "VITE_ALLOWED_HOSTS",
-        "wsa-elite.com,localhost,127.0.0.1,::1,.wsa-elite.com",
-      )
-        .split(",")
-        .map((host) => host.trim()),
+      strictPort: false,
+      allowedHosts: true,
     },
     css: {
       modules: {
@@ -83,7 +81,6 @@ export default defineConfig({
     build: {
       cssCodeSplit: true,
       sourcemap: false,
-      // ✅ شلنا entryFileNames ومش بنجبره على اسم معين
       rollupOptions: {
         output: {
           inlineDynamicImports: true,
