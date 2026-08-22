@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowDown,
   ArrowUp,
-  Calendar,
   Download,
   Loader2,
   RefreshCw,
@@ -52,6 +51,30 @@ const SIDEBAR = {
 const TRANSACTION_TYPES = ["All", "add", "withdraw", "transfer", "deposit"];
 const STATUS_TYPES = ["All", "pending", "approved", "rejected"];
 
+// ✅ لون واحد ثابت لكل status، مستخدم في البادج وفي بوردر الصف مع بعض
+const STATUS_COLORS: Record<string, { badge: string; border: string; dot: string }> = {
+  pending: {
+    badge: "bg-amber-100 text-amber-700 border-amber-200",
+    border: "border-l-amber-400",
+    dot: "#f59e0b",
+  },
+  approved: {
+    badge: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    border: "border-l-emerald-400",
+    dot: "#10b981",
+  },
+  rejected: {
+    badge: "bg-rose-100 text-rose-700 border-rose-200",
+    border: "border-l-rose-400",
+    dot: "#f43f5e",
+  },
+};
+const DEFAULT_STATUS_COLOR = {
+  badge: "bg-slate-100 text-slate-700 border-slate-200",
+  border: "border-l-slate-300",
+  dot: "#94a3b8",
+};
+
 // ✅ دالة لترجمة نوع المعاملة
 const getTransactionLabel = (type: string) => {
   const map: Record<string, string> = {
@@ -71,17 +94,11 @@ const getTransactionMeta = (type: string) => {
   return { icon: ArrowUp, color: "text-rose-600", bg: "bg-rose-100", sign: "-" };
 };
 
-// ✅ دالة لعرض حالة المعاملة
+// ✅ دالة لعرض حالة المعاملة — كل status ليه لونه الخاص من STATUS_COLORS
 const StatusBadge = ({ status }: { status: string }) => {
-  const styles: Record<string, string> = {
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    rejected: "bg-rose-100 text-rose-700 border-rose-200",
-  };
+  const styles = STATUS_COLORS[status]?.badge || DEFAULT_STATUS_COLOR.badge;
   return (
-    <span
-      className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${styles[status] || "bg-slate-100 text-slate-700 border-slate-200"}`}
-    >
+    <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${styles}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
@@ -152,7 +169,7 @@ function ReportsPage() {
       data = data.filter((t) => t.status === filters.status);
     }
 
-    return data.sort((a, b) => {
+    return [...data].sort((a, b) => {
       let valA: any = a[sortBy as keyof typeof a];
       let valB: any = b[sortBy as keyof typeof b];
 
@@ -196,17 +213,16 @@ function ReportsPage() {
   };
 
   // =================================================================
-  // ✅ (جديد) تصفية بيانات الشارت بناءً على الـ period المختار
+  // ✅ تصفية بيانات الشارت بناءً على الـ period المختار
   // =================================================================
   const chartFilteredData = useMemo(() => {
-    if (!report || !report.summary?.daily) return [];
+    if (!report || !report.summary?.daily) return { amount: [], count: [] };
 
     const daily = report.summary.daily;
     const today = new Date();
     let fromDate: Date;
     let toDate: Date = today;
 
-    // تحديد النطاق الزمني بناءً على الفلتر
     switch (filters.period) {
       case "today":
         fromDate = startOfDay(today);
@@ -232,7 +248,6 @@ function ReportsPage() {
         fromDate = subMonths(today, 1);
     }
 
-    // فلترة بيانات الأيام
     const filteredDaily = daily.filter((d) => {
       const dayDate = new Date(d.date);
       return isWithinInterval(dayDate, { start: fromDate, end: toDate });
@@ -258,9 +273,9 @@ function ReportsPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold hover:bg-secondary/80">
+            {/* <button className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold hover:bg-secondary/80">
               <Download className="h-4 w-4" /> Export CSV
-            </button>
+            </button> */}
             <button
               onClick={() => {
                 setCurrentPage(1);
@@ -440,7 +455,7 @@ function ReportsPage() {
           </div>
         </div>
 
-        {/* ✅ Line Charts Section (Updated to use filtered data) */}
+        {/* ✅ Line Charts Section (padded SVGs, each chart has its own color) */}
         <div className="mt-6 surface-card p-6">
           <div className="flex items-center justify-between mb-4 border-b pb-3">
             <h2 className="flex items-center gap-2 font-semibold">
@@ -453,14 +468,22 @@ function ReportsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 📈 خط المبالغ المالية - بيستخدم بيانات chartFilteredData.amount المفلترة */}
-            <LineChart data={chartFilteredData.amount} title="Daily Amounts (USD)" valueLabel="$" />
+            {/* 📈 خط المبالغ المالية */}
+            <LineChart
+              data={chartFilteredData.amount}
+              title="Daily Amounts (USD)"
+              valueLabel="$"
+              color="#3b82f6"
+              activeColor="#1d4ed8"
+            />
 
-            {/* 📈 خط عدد المعاملات - بيستخدم بيانات chartFilteredData.count المفلترة */}
+            {/* 📈 خط عدد المعاملات — لون مختلف عشان يتميز عن شارت المبالغ */}
             <LineChart
               data={chartFilteredData.count}
               title="Daily Transaction Counts"
               valueLabel="Txns"
+              color="#8b5cf6"
+              activeColor="#6d28d9"
             />
           </div>
         </div>
@@ -469,6 +492,15 @@ function ReportsPage() {
         <div className="mt-6 surface-card p-6 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Transactions ({filteredData.length})</h2>
+            {/* legend صغير يوضح لون كل status */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {Object.entries(STATUS_COLORS).map(([status, c]) => (
+                <span key={status} className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.dot }} />
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
+              ))}
+            </div>
           </div>
 
           {isLoading ? (
@@ -517,13 +549,14 @@ function ReportsPage() {
                   {filteredData.map((t) => {
                     const { icon: Icon, color, bg, sign } = getTransactionMeta(t.type);
                     const symbol = CURRENCY_SYMBOL[t.currency] || t.currency;
+                    const statusColor = STATUS_COLORS[t.status] || DEFAULT_STATUS_COLOR;
 
                     return (
                       <tr
                         key={t.id}
-                        className="border-b border-border/40 last:border-0 hover:bg-secondary/30 transition-colors"
+                        className={`border-b border-l-4 border-border/40 last:border-b-0 hover:bg-secondary/30 transition-colors ${statusColor.border}`}
                       >
-                        <td className="py-3 text-muted-foreground whitespace-nowrap">
+                        <td className="py-3 pl-2 text-muted-foreground whitespace-nowrap">
                           {format(parseISO(t.created_at), "MMM d, yyyy • h:mm a")}
                         </td>
                         <td className="py-3">

@@ -67,11 +67,11 @@ class WalletService {
   /**
    * 📥 جلب كل الشركاء
    */
-  async getAllMembers(page: number = 1, search: string = ""): Promise<any> {
+  async getAllMembers(page: number = 1, name: string = ""): Promise<any> {
     try {
       const response = await api.post("/user/members", {
         filters: {
-          ...(search && { search }),
+          ...(name && { name }),
         },
         orderBy: "id",
         orderByDirection: "desc",

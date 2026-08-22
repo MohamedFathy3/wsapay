@@ -7,9 +7,20 @@ interface LineChartProps {
   title: string;
   valueLabel: string;
   className?: string;
+  /** Line + point color. Lets each chart instance have its own theme color. */
+  color?: string;
+  /** Slightly darker shade used for the last (active) point. Falls back to `color` if omitted. */
+  activeColor?: string;
 }
 
-export function LineChart({ data, title, valueLabel, className = "" }: LineChartProps) {
+export function LineChart({
+  data,
+  title,
+  valueLabel,
+  className = "",
+  color = "#3b82f6",
+  activeColor,
+}: LineChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className={`text-center py-8 text-muted-foreground text-sm ${className}`}>
@@ -18,22 +29,37 @@ export function LineChart({ data, title, valueLabel, className = "" }: LineChart
     );
   }
 
+  const dotColor = activeColor || color;
+
   const maxVal = Math.max(...data.map((d) => d.value), 1);
   const minVal = Math.min(...data.map((d) => d.value), 0);
+  // Avoid a 0/0 division when every value is identical (flat line).
+  const valueRange = maxVal - minVal || 1;
 
   // ✅ إعدادات الرسم
   const height = 140;
-  const width = data.length * 60;
+  const PADDING_X = 24; // horizontal padding so points/labels never touch the edges
+  const PADDING_TOP = 16;
+  const PADDING_BOTTOM = 20;
+  const plotWidth = Math.max(data.length * 60, 260);
+  const width = plotWidth + PADDING_X * 2;
 
-  // حساب النقاط للرسم
-  const points = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * width;
-    // تمت إضافة 20 بكسل "Padding" عشان الخط والنقطة ما يلمسوش الحواف
-    const y = height - 20 - ((d.value - minVal) / (maxVal - minVal)) * (height - 20);
+  // Avoid divide-by-zero when there is only a single data point.
+  const step = data.length > 1 ? (plotWidth - 1) / (data.length - 1) : 0;
+
+  const getXY = (i: number, value: number) => {
+    const x = PADDING_X + (data.length > 1 ? i * step : plotWidth / 2);
+    const y =
+      height -
+      PADDING_BOTTOM -
+      ((value - minVal) / valueRange) * (height - PADDING_BOTTOM - PADDING_TOP);
+    return { x, y };
+  };
+
+  const linePoints = data.map((d, i) => {
+    const { x, y } = getXY(i, d.value);
     return `${x},${y}`;
   });
-
-  const linePoints = points.join(" ");
 
   return (
     <div className={`w-full overflow-hidden ${className}`}>
@@ -44,24 +70,23 @@ export function LineChart({ data, title, valueLabel, className = "" }: LineChart
 
       <div className="relative w-full h-[160px] bg-secondary/20 rounded-lg border border-border/50 p-2 overflow-x-auto">
         <svg
-          viewBox={`0 0 ${Math.max(width, 400)} ${height}`}
+          viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full"
-          preserveAspectRatio="none"
+          preserveAspectRatio="xMidYMid meet"
         >
-          {/* الخط الأزرق */}
+          {/* الخط */}
           <polyline
             fill="none"
-            stroke="#3b82f6"
+            stroke={color}
             strokeWidth="3"
             strokeLinejoin="round"
             strokeLinecap="round"
-            points={linePoints}
+            points={linePoints.join(" ")}
           />
 
           {/* النقاط */}
           {data.map((d, i) => {
-            const x = (i / (data.length - 1)) * width;
-            const y = height - 20 - ((d.value - minVal) / (maxVal - minVal)) * (height - 20);
+            const { x, y } = getXY(i, d.value);
             const isLast = i === data.length - 1;
             return (
               <g key={i}>
@@ -74,13 +99,13 @@ export function LineChart({ data, title, valueLabel, className = "" }: LineChart
                   opacity="0.7"
                   className="pointer-events-none"
                 />
-                {/* الدائرة الزرقاء (النقطة الأساسية) */}
+                {/* الدائرة الأساسية */}
                 <circle
                   cx={x}
                   cy={y}
                   r={isLast ? 8 : 6}
-                  fill={isLast ? "#2563eb" : "#3b82f6"}
-                  className="cursor-pointer transition-all hover:r-12 hover:fill-blue-600"
+                  fill={isLast ? dotColor : color}
+                  className="cursor-pointer transition-all hover:r-12"
                 />
                 {/* Tooltip */}
                 <title>
@@ -93,7 +118,7 @@ export function LineChart({ data, title, valueLabel, className = "" }: LineChart
       </div>
 
       {/* عناوين الأيام أسفل الشارت */}
-      <div className="flex justify-between mt-2 px-1 text-[10px] text-muted-foreground">
+      <div className="flex justify-between mt-2 px-2 text-[10px] text-muted-foreground">
         {data.map((d) => (
           <span key={d.date} className="truncate max-w-[30px] text-center">
             {format(parseISO(d.date), "MMM d")}

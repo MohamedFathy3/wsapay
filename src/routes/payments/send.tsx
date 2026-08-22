@@ -20,12 +20,28 @@ import { useAuth } from "@/hooks/useAuth";
 import { walletService } from "@/services/wallet.service";
 import { toast } from "sonner";
 
+// ✅ بنعرّف شكل الـ query params اللي الصفحة ممكن تستقبلها (جاية من زرار Transfer
+// في صفحة /payments — partnerId + partnerName) عشان نعبي الشريك تلقائي.
+type SendPaymentSearch = {
+  partnerId?: number;
+  partnerName?: string;
+};
+
 export const Route = createFileRoute("/payments/send")({
   head: () => ({
     meta: [
       { title: "Send Payment — WSA Pay" },
       { name: "description", content: "Make a payment to one of your WSA Pay trading partners." },
     ],
+  }),
+  // ✅ بنحول الـ query params الجاية من الرابط (partnerId/partnerName) لقيم من نوع
+  // معروف بدل ما تفضل strings من غير تحقق. لو مش موجودة، بترجع undefined عادي.
+  validateSearch: (search: Record<string, unknown>): SendPaymentSearch => ({
+    partnerId:
+      search.partnerId !== undefined && search.partnerId !== null && search.partnerId !== ""
+        ? Number(search.partnerId)
+        : undefined,
+    partnerName: typeof search.partnerName === "string" ? search.partnerName : undefined,
   }),
   beforeLoad: async () => {
     const { tokenService } = await import("@/services/token.service");
@@ -57,12 +73,16 @@ const SIDEBAR = {
 function SendPayment() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  // ✅ partnerId / partnerName اللي جايين من رابط "Transfer" في صفحة /payments
+  const { partnerId, partnerName } = Route.useSearch();
+
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [partners, setPartners] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [isPartnerPrefilled, setIsPartnerPrefilled] = useState(false);
   const [currency, setCurrency] = useState("USD");
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
@@ -73,6 +93,33 @@ function SendPayment() {
     fetchPartners();
     fetchFavorites();
   }, []);
+
+  // ✅ لو المستخدم جاي من زرار "Transfer" في صفحة /payments ومعاه partnerId،
+  // بنعبي الشريك مباشرة بدل ما نسيبه يدور تاني من الأول.
+  useEffect(() => {
+    if (!partnerId) return;
+
+    // أول حاجة نحط بيانات مبدئية من الـ URL نفسه عشان يظهر اسمه فورًا من غير ما ننتظر الشبكة
+    setSelectedPartner((prev: any) => prev ?? { id: partnerId, name: partnerName, displayName: partnerName });
+    setIsPartnerPrefilled(true);
+
+    // بعدين نحاول نجيب بيانات الشريك الكاملة (الإيميل، الصورة...) من نفس اللستة اللي عندنا،
+    // أو من نتيجة بحث بالـ id لو الـ API بيدعم كده.
+    const matchFromList = [...partners, ...favorites].find((p) => p.id === partnerId);
+    if (matchFromList) {
+      setSelectedPartner(matchFromList);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerId, partnerName]);
+
+  // ✅ لو الليستة اتحدثت بعد كده ولقينا فيها نفس الـ partnerId، نستبدل البيانات المبدئية بالكاملة
+  useEffect(() => {
+    if (!partnerId) return;
+    const matchFromList = [...partners, ...favorites].find((p) => p.id === partnerId);
+    if (matchFromList) {
+      setSelectedPartner(matchFromList);
+    }
+  }, [partners, favorites, partnerId]);
 
   const fetchPartners = async (search: string = "") => {
     try {
@@ -138,11 +185,19 @@ function SendPayment() {
     }
   };
 
-  // ✅ اختيار شريك
+  // ✅ اختيار شريك يدويًا من اللستة أو الـ favorites
   const selectPartner = (partner: any) => {
     setSelectedPartner(partner);
+    setIsPartnerPrefilled(false);
     setSearchTerm("");
-    setStep(2);
+  };
+
+  // ✅ إلغاء اختيار الشريك (سواء المعبى تلقائي أو المختار يدويًا) والرجوع للبحث
+  const clearSelectedPartner = () => {
+    setSelectedPartner(null);
+    setIsPartnerPrefilled(false);
+    // بنمسح الـ partnerId من الرابط عشان لو عمل رفريش ما يترجعش يتعبي تاني
+    navigate({ to: "/payments/send", search: {}, replace: true });
   };
 
   return (
@@ -195,67 +250,101 @@ function SendPayment() {
                 Pay To (Partner) <span className="text-destructive">*</span>
               </label>
 
-              {/* ✅ Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search partners by name or email..."
-                  className="h-11 w-full rounded-lg bg-secondary/70 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-
-              {/* ✅ Favorites */}
-              {!searchTerm && favorites.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">⭐ Favorites</p>
-                  <div className="flex flex-wrap gap-2">
-                    {favorites.map((fav) => (
-                      <button
-                        key={fav.id}
-                        onClick={() => selectPartner(fav)}
-                        className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm hover:bg-secondary transition-colors"
-                      >
-                        <Star className="h-3 w-3 text-warning fill-warning" />
-                        {fav.displayName || fav.name}
-                      </button>
-                    ))}
-                  </div>
+              {/* ✅ لو فيه شريك متعبي (سواء جاي من الرابط أو مختار يدويًا)، بنوريه كـ "كارت" بدل
+                  ما نوري صندوق البحث — وبنسيب للمستخدم خيار "Change" لو عايز يبدّله */}
+              {selectedPartner ? (
+                <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {selectedPartner.displayName?.[0] || selectedPartner.name?.[0] || "U"}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block font-medium truncate">
+                      {selectedPartner.displayName || selectedPartner.name}
+                    </span>
+                    {selectedPartner.email ? (
+                      <span className="block text-xs text-muted-foreground truncate">
+                        {selectedPartner.email}
+                      </span>
+                    ) : isPartnerPrefilled ? (
+                      <span className="block text-xs text-muted-foreground">
+                        Selected from Payments page
+                      </span>
+                    ) : null}
+                  </span>
+                  <button
+                    onClick={clearSelectedPartner}
+                    className="shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
+                  >
+                    <X className="h-3.5 w-3.5" /> Change
+                  </button>
                 </div>
-              )}
-
-              {/* ✅ Partners List */}
-              <div className="mt-3 max-h-48 overflow-y-auto space-y-1">
-                {isSearching ? (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              ) : (
+                <>
+                  {/* ✅ Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search partners by name or email..."
+                      className="h-11 w-full rounded-lg bg-secondary/70 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                    />
                   </div>
-                ) : partners.length > 0 ? (
-                  partners.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => selectPartner(p)}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-secondary transition-colors"
-                    >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                        {p.displayName?.[0] || p.name?.[0] || "U"}
-                      </span>
-                      <span className="flex-1 text-left">
-                        <span className="block font-medium">{p.displayName || p.name}</span>
-                        <span className="block text-xs text-muted-foreground">{p.email}</span>
-                      </span>
-                      {favorites.some((f) => f.id === p.id) && (
-                        <Star className="h-3 w-3 text-warning fill-warning" />
-                      )}
-                    </button>
-                  ))
-                ) : searchTerm ? (
-                  <p className="text-center py-4 text-sm text-muted-foreground">
-                    No partners found
-                  </p>
-                ) : null}
-              </div>
+
+                  {/* ✅ Favorites */}
+                  {!searchTerm && favorites.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">
+                        ⭐ Favorites
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {favorites.map((fav) => (
+                          <button
+                            key={fav.id}
+                            onClick={() => selectPartner(fav)}
+                            className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm hover:bg-secondary transition-colors"
+                          >
+                            <Star className="h-3 w-3 text-warning fill-warning" />
+                            {fav.displayName || fav.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ✅ Partners List */}
+                  <div className="mt-3 max-h-48 overflow-y-auto space-y-1">
+                    {isSearching ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    ) : partners.length > 0 ? (
+                      partners.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => selectPartner(p)}
+                          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-secondary transition-colors"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                            {p.displayName?.[0] || p.name?.[0] || "U"}
+                          </span>
+                          <span className="flex-1 text-left">
+                            <span className="block font-medium">{p.displayName || p.name}</span>
+                            <span className="block text-xs text-muted-foreground">{p.email}</span>
+                          </span>
+                          {favorites.some((f) => f.id === p.id) && (
+                            <Star className="h-3 w-3 text-warning fill-warning" />
+                          )}
+                        </button>
+                      ))
+                    ) : searchTerm ? (
+                      <p className="text-center py-4 text-sm text-muted-foreground">
+                        No partners found
+                      </p>
+                    ) : null}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* ✅ Currency & Amount */}

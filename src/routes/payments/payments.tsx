@@ -318,7 +318,7 @@ function Payments() {
                 {lastTransactions.slice(0, 5).map((t) => {
                   const symbol = CURRENCY_SYMBOL[t.currency as keyof typeof CURRENCY_SYMBOL] || "$";
 
-                  // ✅ التعديل هنا: نحن نحسب العلامة بناءً على نوع الحركة المالية بشكل دقيق
+                  // ✅ نحسب العلامة بناءً على نوع الحركة المالية بشكل دقيق
                   let sign = "+";
                   let colorClass = "text-green-600"; // افتراضي أخضر للإيداع
 
@@ -427,8 +427,14 @@ function Payments() {
                         ⭐
                       </span>
                     )}
+                    {/* ✅ دلوقتي بنبعت partnerId و partnerName في الـ URL عشان صفحة
+                        /payments/send تقدر تعبي المستلم تلقائي بدل ما توديك لصفحة فاضية */}
                     <Link
                       to="/payments/send"
+                      search={{
+                        partnerId: partner.id,
+                        partnerName: partner.displayName || partner.name,
+                      }}
                       className="shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
                     >
                       Transfer
@@ -452,8 +458,13 @@ function Payments() {
                       </p>
                       <p className="text-xs text-muted-foreground truncate">{partner.email}</p>
                     </div>
+                    {/* ✅ نفس الموضوع هنا كمان للـ sub-accounts */}
                     <Link
                       to="/payments/send"
+                      search={{
+                        partnerId: partner.id,
+                        partnerName: partner.displayName || partner.name,
+                      }}
                       className="shrink-0 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
                     >
                       Transfer
