@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// src/components/administration/ProfileTab.tsx
 import { User } from "@/types/auth.types";
 
 interface ProfileTabProps {

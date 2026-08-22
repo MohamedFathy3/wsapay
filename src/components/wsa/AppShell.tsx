@@ -1,3 +1,4 @@
+// src/components/wsa/AppShell.tsx
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, ChevronDown, HelpCircle, LogOut, User, Settings, Shield } from "lucide-react";
 import type { ReactNode } from "react";
@@ -5,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Logo } from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "@tanstack/react-router";
+import { NotificationDropdown } from "./NotificationDropdown"; // ✅ import
 
 const NAV = [
   { label: "Home", to: "/dashboard" },
@@ -28,7 +30,6 @@ export function AppShell({
   const { user, logout, isAuthenticated } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // ✅ إغلاق الـ Dropdown عند الضغط برا
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -40,13 +41,11 @@ export function AppShell({
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // ✅ استخراج بيانات المستخدم
   const userName = user?.name || "User";
   const userEmail = user?.email || "";
   const userRole = user?.role || "member";
   const companyName = user?.displayName || user?.email_company || "Company";
 
-  // ✅ الحروف الأولى للـ Avatar
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -58,7 +57,6 @@ export function AppShell({
 
   const initials = getInitials(userName);
 
-  // ✅ عرض دور المستخدم بشكل مفهوم
   const getRoleLabel = (role: string) => {
     const roles: Record<string, string> = {
       admin: "Administrator",
@@ -79,7 +77,6 @@ export function AppShell({
       <header className="brand-panel sticky top-0 z-30">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-8 px-6">
           <Link to="/dashboard">
-            {/* ✅ هنا الشعار الأساسي هو favicon.png */}
             <img src="/WSAPAYLogo-03.png" alt="WSA Pay" className="h-20 w-auto cover" />
           </Link>
           <nav className="hidden items-center gap-1 lg:flex">
@@ -101,28 +98,21 @@ export function AppShell({
             })}
           </nav>
           <div className="ml-auto flex items-center gap-4 text-white/80">
-            <button className="relative" aria-label="Notifications">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-magenta text-[10px] font-bold text-white">
-                3
-              </span>
-            </button>
+            {/* ✅ استخدم الـ NotificationDropdown */}
+            <NotificationDropdown />
             <HelpCircle className="h-5 w-5" />
 
-            {/* ✅ Dropdown container */}
             <div className="relative dropdown-container">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-white/10"
               >
-                {/* ✅ هنا صورة المستخدم (لو موجودة) أو الأحرف الأولى */}
                 {user?.logo ? (
                   <img
                     src={user.logo}
                     alt="User Logo"
                     className="h-9 w-9 rounded-full object-cover border border-white/20"
                     onError={(e) => {
-                      // لو الصورة ماتحملتش، نخفيها ونظهر الأحرف الأولى
                       e.currentTarget.style.display = "none";
                     }}
                   />
@@ -142,13 +132,10 @@ export function AppShell({
                 />
               </button>
 
-              {/* ✅ Dropdown menu - ألوان مناسبة للخلفية البيضاء */}
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-72 rounded-xl bg-white shadow-2xl ring-1 ring-black/10">
-                  {/* ✅ Header - نص غامق على خلفية بيضاء */}
                   <div className="border-b border-gray-200 px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {/* ✅ Logo الخاص بالمستخدم جوه الـ Dropdown */}
                       {user?.logo ? (
                         <img
                           src={user.logo}
@@ -171,7 +158,6 @@ export function AppShell({
                     </div>
                   </div>
 
-                  {/* ✅ Menu items - كلها بقت Links بتودي لصفحات */}
                   <div className="p-2">
                     <Link
                       to="/administration"
@@ -182,7 +168,6 @@ export function AppShell({
                       My Profile
                     </Link>
                   </div>
-                  {/* ✅ Logout button */}
                   <div className="border-t border-gray-200 p-2">
                     <button
                       onClick={handleLogout}
@@ -247,7 +232,6 @@ export function AppShell({
 
       <footer className="brand-panel">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-8 gap-y-3 px-6 py-6 text-sm text-white/70">
-          {/* ✅ الشعار الأساسي في الـ Footer هو favicon.png */}
           <img src="/favicon.png" alt="WSA Pay" className="h-8 w-auto" />
 
           <Link to="/about" className="hover:text-white transition-colors">

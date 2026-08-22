@@ -12,6 +12,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import * as XLSX from "xlsx"; // ✅ SheetJS — لازم تتثبت: npm install xlsx --save
 import { AppShell } from "@/components/wsa/AppShell";
 import { StatusPill } from "./dashboard";
 import {
@@ -82,6 +83,7 @@ const USER_SEARCH_OPTIONS = [
 function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false); // ✅ لودينج زرار الإكسبورت
   const [search, setSearch] = useState("");
   const [searchField, setSearchField] = useState("user_name");
   const [type, setType] = useState("");
@@ -203,7 +205,24 @@ function Transactions() {
     return colors[type] || "text-foreground";
   };
 
-  // ✅ عرض من/إلى
+  // ✅ نص "From / To" — بنستخدمها في الجدول وفي التصدير عشان تفضل موحدة
+  const getFromToText = (transaction: Transaction) => {
+    if (transaction.type === "add") {
+      return `From: ${transaction.from_user_name || "System"}`;
+    }
+    if (transaction.type === "withdraw") {
+      return `To: ${transaction.to_user_name || "Bank"}`;
+    }
+    if (transaction.type === "transfer") {
+      const isSender = transaction.from_user_id === transaction.user_id;
+      return isSender
+        ? `To: ${transaction.to_user_name || `User #${transaction.to_user_id}`}`
+        : `From: ${transaction.from_user_name || `User #${transaction.from_user_id}`}`;
+    }
+    return "—";
+  };
+
+  // ✅ عرض من/إلى (للجدول)
   const renderFromTo = (transaction: Transaction) => {
     if (transaction.type === "add") {
       return (
@@ -252,6 +271,83 @@ function Transactions() {
     return icons[type] || "📄";
   };
 
+  // ============================================================
+  // ✅ تصدير إكسل — بيصدّر كل المعاملات المطابقة للفلاتر الحالية
+  // (مش بس الصفحة الظاهرة على الشاشة)
+  // ============================================================
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+
+      const filters: any = {};
+      if (search) filters[searchField] = search;
+      if (type) filters.type = type;
+      if (currency) filters.currency = currency;
+      if (status) filters.status = status;
+
+      // بنجيب كل الصفوف المطابقة للفلاتر في نداء واحد (مش صفحة صفحة)
+      const exportPayload: TransactionFilters = {
+        filters,
+        orderBy: "id",
+        orderByDirection: "desc",
+        perPage: totalItems > 0 ? totalItems : 1000,
+        paginate: 1,
+        page: 1,
+      };
+
+      const response = await transactionService.getTransactions(exportPayload);
+      const rows = response.data;
+
+      if (!rows || rows.length === 0) {
+        toast.error("No transactions to export");
+        return;
+      }
+
+      // ✅ بناء صفوف الإكسل بنفس أعمدة الجدول
+      const exportRows = rows.map((t) => ({
+        Date: formatDate(t.created_at),
+        User: t.user_name || "",
+        Type: getTypeLabel(t.type),
+        "From / To": getFromToText(t),
+        Description: t.description || t.type,
+        Currency: t.currency,
+        Amount:
+          t.type === "add"
+            ? parseFloat(t.amount)
+            : t.type === "withdraw"
+              ? -parseFloat(t.amount)
+              : parseFloat(t.amount),
+        Status: t.status,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportRows);
+      // ✅ عرض الأعمدة عشان الملف يبقى مقروء من غير ما تتحكم إنت في العرض يدوي
+      worksheet["!cols"] = [
+        { wch: 14 }, // Date
+        { wch: 20 }, // User
+        { wch: 12 }, // Type
+        { wch: 30 }, // From / To
+        { wch: 30 }, // Description
+        { wch: 10 }, // Currency
+        { wch: 14 }, // Amount
+        { wch: 12 }, // Status
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `wsa-pay-transactions-${dateStamp}.xlsx`);
+
+      toast.success(`Exported ${rows.length} transaction${rows.length > 1 ? "s" : ""}`);
+    } catch (error) {
+      console.error("Error exporting transactions:", error);
+      toast.error("Failed to export transactions");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <AppShell>
       <div className="flex flex-wrap items-start gap-4">
@@ -261,8 +357,20 @@ function Transactions() {
             All payments, deposits and withdrawals across your WSA Pay accounts.
           </p>
         </div>
-        <button className="ml-auto flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold hover:bg-secondary/80">
-          <Download className="h-4 w-4" /> Export Statement
+        <button
+          onClick={handleExport}
+          disabled={isExporting}
+          className="ml-auto flex items-center gap-2 rounded-lg bg-secondary px-4 py-2.5 text-sm font-semibold hover:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Exporting...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4" /> Export Statement
+            </>
+          )}
         </button>
       </div>
 

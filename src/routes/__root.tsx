@@ -13,7 +13,8 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProvider } from "@/contexts/AppContext";
-import { LanguageProvider } from "@/i18n/LanguageContext"; // ✅ استيراد LanguageProvider
+import { LanguageProvider } from "@/i18n/LanguageContext";
+import { NotificationProvider } from "@/contexts/NotificationContext"; // ✅ import الجديد
 
 function NotFoundComponent() {
   return (
@@ -118,7 +119,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  // ✅ الحل السحري: نتأكد إننا في المتصفح قبل ما نحمل الـ Providers
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -127,25 +127,24 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* ✅ لو مش في المتصفح (Server) مش هنحمل الـ Providers عشان يمنع الـ 500 */}
       {isClient ? (
         <LanguageProvider>
-          {" "}
-          {/* ✅ تم وضع LanguageProvider فوق AppProvider */}
           <AppProvider>
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              expand={false}
-              duration={4000}
-              theme="light"
-            />
-            <Outlet />
+            {/* ✅ NotificationProvider هنا فوق الـ Toaster و الـ Outlet */}
+            <NotificationProvider>
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                expand={false}
+                duration={4000}
+                theme="light"
+              />
+              <Outlet />
+            </NotificationProvider>
           </AppProvider>
         </LanguageProvider>
       ) : (
-        // ✅ لو في السيرفر (SSR)، نحمل الـ Toaster والـ Outlet بس عشان الموقع يظهر
         <>
           <Toaster
             position="top-right"

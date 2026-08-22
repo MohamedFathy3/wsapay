@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
-import { Info, Eye, Pencil, Plus, UserPlus, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Info } from "lucide-react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/wsa/AppShell";
 import { useApp } from "@/contexts/AppContext";
 
-// ✅ استيراد المكونات الفرعية
 import { ProfileTab } from "@/components/administration/ProfileTab";
 import { UsersTab } from "@/components/administration/UsersTab";
 import { BankAccountsTab } from "@/components/administration/BankAccountsTab";
@@ -47,18 +46,42 @@ const TABS = [
   "Settings",
 ] as const;
 
-// ------------------- Main Component -------------------
-
 function Administration() {
   const { user, refreshUser } = useApp();
-
   const [tab, setTab] = useState<(typeof TABS)[number]>("Company Profile");
 
-  const userData = user;
-  const bankAccounts = userData?.bankAccounts || [];
-  const subAccounts = userData?.subAccounts || [];
+  const [bankAccounts, setBankAccounts] = useState<any[]>(user?.bankAccounts || []);
+  const [subAccounts, setSubAccounts] = useState<any[]>(user?.subAccounts || []);
+  // ✅ خلي userData في state عشان يتحدث
+  const [userData, setUserData] = useState<any>(user);
 
-  // ----- Render -----
+  // ✅ تحديث الـ state لما user يتغير
+  useEffect(() => {
+    setUserData(user);
+    setBankAccounts(user?.bankAccounts || []);
+    setSubAccounts(user?.subAccounts || []);
+  }, [user]);
+
+  const refreshBankAccounts = async () => {
+    try {
+      const refreshedUser = await refreshUser();
+
+      // ✅ حدث userData
+      if (refreshedUser) {
+        setUserData(refreshedUser);
+      }
+
+      if (refreshedUser?.bankAccounts && Array.isArray(refreshedUser.bankAccounts)) {
+        setBankAccounts(refreshedUser.bankAccounts);
+      }
+
+      return refreshedUser;
+    } catch (error) {
+      console.error("Error refreshing bank accounts:", error);
+      return null;
+    }
+  };
+
   return (
     <AppShell sidebar={SIDEBAR}>
       <div className="flex flex-wrap items-start gap-4">
@@ -86,15 +109,13 @@ function Administration() {
         ))}
       </div>
 
-      {/* ✅ استدعاء المكونات هنا بكل بساطة! */}
       {tab === "Company Profile" && <ProfileTab userData={userData} />}
       {tab === "Users & Permissions" && <UsersTab subAccounts={subAccounts} />}
       {tab === "Bank Accounts" && (
-        <BankAccountsTab bankAccounts={bankAccounts} refreshUser={refreshUser} />
+        <BankAccountsTab bankAccounts={bankAccounts} refreshUser={refreshBankAccounts} />
       )}
       {tab === "Settings" && <SettingsTab userData={userData} refreshUser={refreshUser} />}
 
-      {/* Security Tab (ثابت حالياً) */}
       {tab === "Security" && (
         <div className="mt-6 surface-card p-6">
           <p className="text-sm text-muted-foreground">Security settings coming soon...</p>

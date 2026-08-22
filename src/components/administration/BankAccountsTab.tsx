@@ -1,13 +1,14 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CurrencyIcon } from "@/components/wsa/CurrencyIcon";
-import { Building2, CheckCircle2, Loader2, Trash2, X, Pencil, Plus } from "lucide-react";
+import { Building2, CheckCircle2, Loader2, X, Plus } from "lucide-react";
 import { settingService, BankAccountPayload } from "@/services/settingsaccount.service";
 import { toast } from "sonner";
 
 interface BankAccountsTabProps {
   bankAccounts: any[];
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<any>;
 }
 
 export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabProps) {
@@ -15,6 +16,11 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<BankAccountPayload>({});
+  const [localAccounts, setLocalAccounts] = useState<any[]>(bankAccounts);
+
+  useEffect(() => {
+    setLocalAccounts(bankAccounts);
+  }, [bankAccounts]);
 
   const openModal = (account: any = null) => {
     setEditingAccount(account);
@@ -39,18 +45,43 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
     setIsModalOpen(true);
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingAccount(null);
+    setFormData({});
+    setIsSaving(false);
+  };
+
   const handleSaveAccount = async () => {
+    if (isSaving) return;
+
+    const isEditing = !!editingAccount;
+
     try {
       setIsSaving(true);
-      if (editingAccount) {
+
+      if (isEditing) {
         await settingService.updateBankAccount(editingAccount.id, formData);
         toast.success("Account updated successfully!");
+
+        setLocalAccounts((prev) =>
+          prev.map((acc) => (acc.id === editingAccount.id ? { ...acc, ...formData } : acc)),
+        );
       } else {
-        await settingService.createBankAccount(formData);
+        const response = await settingService.createBankAccount(formData);
         toast.success("Account created successfully!");
+
+        if (response?.data?.id) {
+          setLocalAccounts((prev) => [...prev, response.data]);
+        } else {
+          setLocalAccounts((prev) => [...prev, { ...formData, id: `temp-${Date.now()}` }]);
+        }
       }
-      setIsModalOpen(false);
-      await refreshUser();
+
+      closeModal();
+
+      // ✅ Refresh في الخلفية من غير await
+      refreshUser().catch(console.error);
     } catch (error: any) {
       toast.error(error.message || "Failed to save account");
     } finally {
@@ -60,12 +91,22 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
 
   const handleDeleteAccount = async (id: number) => {
     if (!confirm("Are you sure you want to delete this bank account?")) return;
+
+    const previousAccounts = localAccounts;
+
+    // ✅ حذف فوري من الـ UI
+    setLocalAccounts((prev) => prev.filter((acc) => acc.id !== id));
+
     try {
       await settingService.deleteBankAccounts([id]);
       toast.success("Account deleted successfully!");
-      await refreshUser();
+
+      // ✅ Refresh في الخلفية من غير await
+      refreshUser().catch(console.error);
     } catch (error: any) {
       toast.error(error.message || "Failed to delete account");
+      // ✅ لو فشل، نرجع الحسابات القديمة
+      setLocalAccounts(previousAccounts);
     }
   };
 
@@ -80,7 +121,6 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
             </p>
           </div>
 
-          {/* ✅ زر الإضافة موجود هنا جوه التاب */}
           <button
             onClick={() => openModal(null)}
             className="gradient-primary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-primary-foreground"
@@ -89,7 +129,7 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
           </button>
         </div>
 
-        {bankAccounts.length === 0 ? (
+        {localAccounts.length === 0 ? (
           <div className="mt-5 text-center py-12 text-muted-foreground">
             No bank accounts found.
             <button
@@ -101,7 +141,7 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
           </div>
         ) : (
           <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            {bankAccounts.map((account: any) => {
+            {localAccounts.map((account: any) => {
               const currencyCode = account.account_name?.includes("USD")
                 ? "USD"
                 : account.account_name?.includes("EUR")
@@ -202,10 +242,7 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
                   ? `Edit ${editingAccount.account_name || "Account"}`
                   : "Add New Bank Account"}
               </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <button onClick={closeModal} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -339,7 +376,7 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
 
             <div className="mt-6 flex justify-end gap-3 border-t pt-4">
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold"
               >
                 Cancel
@@ -347,9 +384,16 @@ export function BankAccountsTab({ bankAccounts, refreshUser }: BankAccountsTabPr
               <button
                 onClick={handleSaveAccount}
                 disabled={isSaving}
-                className="gradient-primary rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-70"
+                className="gradient-primary rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-70 flex items-center gap-2"
               >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </button>
             </div>
           </div>

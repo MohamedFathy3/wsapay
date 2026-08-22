@@ -29,7 +29,7 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
     last_name_administrator: userData?.last_name_administrator || "",
     mobile_administrator: userData?.mobile_administrator || "",
     email: userData?.email || "",
-    logo: userData?.logo || null, // ✅ إضافة اللوجو
+    logo: userData?.logo || null,
   });
 
   const [passwordForm, setPasswordForm] = useState<UpdatePasswordData>({
@@ -45,7 +45,39 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+
   const [logoPreview, setLogoPreview] = useState<string | null>(userData?.logo || null);
+
+  // ✅ تحديث logoPreview لما userData يتغير
+  useEffect(() => {
+    if (userData?.logo) {
+      setLogoPreview(userData.logo);
+    } else {
+      setLogoPreview(null);
+    }
+  }, [userData]);
+
+  // ✅ تحديث profileForm لما userData يتغير
+  useEffect(() => {
+    setProfileForm({
+      name: userData?.name || "",
+      display_name: userData?.displayName || "",
+      email_company: userData?.email_company || "",
+      phone: userData?.phone || "",
+      address_one: userData?.address_one || "",
+      address_two: userData?.address_two || "",
+      city: userData?.city || "",
+      state: userData?.state || "",
+      postal_code: userData?.postalCode || "",
+      country_id: userData?.country?.id || "",
+      first_name_administrator: userData?.first_name_administrator || "",
+      middle_name_administrator: userData?.middle_name_administrator || "",
+      last_name_administrator: userData?.last_name_administrator || "",
+      mobile_administrator: userData?.mobile_administrator || "",
+      email: userData?.email || "",
+      logo: userData?.logo || null,
+    });
+  }, [userData]);
 
   // ✅ جلب الدول عند تحميل الصفحة
   useEffect(() => {
@@ -69,13 +101,11 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
     setProfileForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ التعامل مع رفع اللوجو
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedLogo(file);
       setProfileForm((prev) => ({ ...prev, logo: file }));
-      // عرض معاينة الصورة
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -229,8 +259,8 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
             </div>
           </div>
 
-          {/* ✅ حقول إضافية ( Country) */}
-          <div className="grid grid-cols-1 md:grid-cols- gap- border-t pt-4">
+          {/* Country */}
+          <div className="grid grid-cols-1 gap-4 border-t pt-4">
             <div>
               <label className="text-xs font-semibold text-muted-foreground">Country</label>
               <div className="relative mt-1">
@@ -256,7 +286,6 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
                 )}
               </div>
 
-              {/* عرض العلم واسم الدولة المختارة */}
               {profileForm.country_id && (
                 <div className="mt-1 flex items-center gap-2">
                   <img
@@ -275,7 +304,7 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
             </div>
           </div>
 
-          {/* ✅ قسم المدير (Administrator) */}
+          {/* Administrator */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
             <div>
               <label className="text-xs font-semibold text-muted-foreground">First Name</label>
@@ -324,19 +353,22 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
             </div>
           </div>
 
-          {/* ✅ Upload Logo Section */}
+          {/* Upload Logo Section */}
           <div className="border-t pt-4">
             <label className="text-xs font-semibold text-muted-foreground mb-2 block">
               Company Logo
             </label>
             <div className="flex items-center gap-4">
-              {/* Preview */}
               {logoPreview ? (
                 <div className="relative h-20 w-20 rounded-lg border border-border overflow-hidden group">
                   <img
                     src={logoPreview}
                     alt="Logo Preview"
                     className="h-full w-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      setLogoPreview(null);
+                    }}
                   />
                   <button
                     type="button"
@@ -352,7 +384,6 @@ export function SettingsTab({ userData, refreshUser }: SettingsTabProps) {
                 </div>
               )}
 
-              {/* Upload Button */}
               <div>
                 <input
                   ref={fileInputRef}

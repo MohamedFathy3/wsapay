@@ -1,15 +1,37 @@
-// hooks/useAuth.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/hooks/useAuth.ts
 import { useEffect, useState } from "react";
 import { authService } from "@/services/auth.service";
 import { tokenService } from "@/services/token.service";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+
+  // ✅ دالة جلب المستخدم - استخدم authService.checkAuth()
+  const fetchUser = async () => {
+    try {
+      const userData = await authService.checkAuth();
+      if (userData) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        return userData;
+      } else {
+        tokenService.removeToken();
+        setUser(null);
+        setIsAuthenticated(false);
+        return null;
+      }
+    } catch (error: any) {
+      console.error("Error fetching user:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,7 +43,6 @@ export const useAuth = () => {
           setUser(userData);
           setIsAuthenticated(true);
         } else {
-          // لو مفيش مستخدم، نتأكد إننا clean
           tokenService.removeToken();
           setUser(null);
           setIsAuthenticated(false);
@@ -72,5 +93,6 @@ export const useAuth = () => {
     isAuthenticated,
     login,
     logout,
+    refreshUser: fetchUser,
   };
 };

@@ -3,12 +3,10 @@ import {
   ArrowDownToLine,
   ArrowRight,
   ArrowUpFromLine,
-  Building2,
   Download,
   DollarSign,
   Euro,
   FileText,
-  Info,
   PoundSterling,
   Plus,
   Send,
@@ -18,13 +16,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  Banknote,
   AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/wsa/AppShell";
 import { useAuth } from "@/hooks/useAuth";
-import { depositAccounts, importantNotes } from "@/lib/wsa-data";
+import { depositAccounts } from "@/lib/wsa-data";
 import { settingService, BankAccount } from "@/services/setting.service";
 import api from "@/lib/api"; // ✅ استيراد الـ api بتاعك
 
@@ -81,29 +78,71 @@ const CURRENCY_COLORS = {
   GBP: "text-green-600",
 } as const;
 
-// ✅ تعريف نوع الـ Response للـ Transfer Report
+// ============================================================
+// ✅ الشكل الحقيقي لـ response بتاع /user/transfer-report
+// (متطابق مع الـ JSON اللي بعتّه، مش الشكل القديم اللي كان فيه
+// summary.totalTransfers / monthly[])
+// ============================================================
+interface ReportTransactionType {
+  amount: number;
+  transactions: number;
+}
+
+interface ReportTransaction {
+  id: number;
+  user_id: number;
+  user_name: string | null;
+  from_user_id: number | null;
+  from_user_name: string | null;
+  to_user_id: number | null;
+  to_user_name: string | null;
+  amount: string;
+  currency: "USD" | "EUR" | "GBP" | string;
+  type: "add" | "withdraw" | "transfer" | "deposit" | string;
+  description: string | null;
+  status: "approved" | "pending" | "rejected" | string;
+  read: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ReportDailyEntry {
+  date: string;
+  day: string;
+  day_name: string;
+  total_amount: number;
+  transactions: number;
+  types: {
+    add: ReportTransactionType;
+    withdraw: ReportTransactionType;
+    transfer: ReportTransactionType;
+    deposit: ReportTransactionType;
+  };
+}
+
 interface TransferReportResponse {
-  data: {
-    summary: {
-      totalTransfers: number;
-      approved: number;
-      pending: number;
-      rejected: number;
+  data: ReportTransaction[];
+  summary: {
+    month: string;
+    from: string;
+    to: string;
+    total_amount: number;
+    transactions: number;
+    types: {
+      add: ReportTransactionType;
+      withdraw: ReportTransactionType;
+      transfer: ReportTransactionType;
+      deposit: ReportTransactionType;
     };
-    monthly: Array<{
-      year: number;
-      month: number;
-      monthName: string;
-      transfers: number;
-      approved: number;
-      pending: number;
-      rejected: number;
-      amounts: {
-        USD: { count: number; total: string };
-        EUR: { count: number; total: string };
-        GBP: { count: number; total: string };
-      };
-    }>;
+    daily: ReportDailyEntry[];
+  };
+  meta?: {
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
   };
   result: string;
   message: string;
@@ -114,10 +153,14 @@ function Dashboard() {
   const { user, isLoading } = useAuth();
   const [currency, setCurrency] = useState<keyof typeof depositAccounts>("USD");
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [isLoadingBank, setIsLoadingBank] = useState(true);
+  const [isLoadingBank, setIsLoadingBank] = useState(false);
 
-  // ✅ State للـ Report
-  const [reportData, setReportData] = useState<TransferReportResponse["data"] | null>(null);
+  // ✅ State للـ Report (الشكل الجديد: summary + data[] + daily[])
+  const [reportSummary, setReportSummary] = useState<TransferReportResponse["summary"] | null>(
+    null,
+  );
+  const [reportRows, setReportRows] = useState<ReportTransaction[]>([]);
+  const [reportTotal, setReportTotal] = useState<number>(0);
   const [isLoadingReport, setIsLoadingReport] = useState(false);
 
   // ✅ استخراج البيانات من user
@@ -150,10 +193,13 @@ function Dashboard() {
         const accounts = await settingService.getBankAccounts();
         setBankAccounts(accounts);
 
-        // ✅ جلب الـ Report من الـ API
+        // ✅ جلب الـ Report من الـ API — الشكل الحقيقي هو:
+        // { data: [...], summary: {...}, meta: {...}, result, message, status }
         const response = await api.get<TransferReportResponse>("/user/transfer-report");
-        if (response.data.result === "success" && response.data.data) {
-          setReportData(response.data.data);
+        if (response.data?.result === "success") {
+          setReportSummary(response.data.summary ?? null);
+          setReportRows(response.data.data ?? []);
+          setReportTotal(response.data.meta?.total ?? response.data.summary?.transactions ?? 0);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -172,29 +218,43 @@ function Dashboard() {
     maximumFractionDigits: 2,
   });
 
-  // ✅ إحصائيات المعاملات (من الـ Report)
-  const totalTransactions = reportData?.summary?.totalTransfers || lastTransactions.length;
-  const pendingTransactions =
-    reportData?.summary?.pending || lastTransactions.filter((t) => t.status === "pending").length;
-  const approvedTransactions =
-    reportData?.summary?.approved || lastTransactions.filter((t) => t.status === "approved").length;
+  // ============================================================
+  // ✅ إحصائيات المعاملات — الشهر الحالي (من reportSummary)
+  // ============================================================
+  const totalTransactions = reportSummary ? reportTotal : lastTransactions.length;
 
-  // حساب الإجماليات من المعاملات الأخيرة
-  const totalReceived = lastTransactions
-    .filter((t) => t.type === "add" || t.type === "deposit")
-    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
-  const totalSent = lastTransactions
-    .filter((t) => t.type === "withdraw" || t.type === "transfer")
-    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+  // ⚠️ الـ API الحالي مش راجع تقسيم approved / pending / rejected
+  // جوه summary زي ما بيرجّع types (add/withdraw/transfer/deposit).
+  // فبنحسبهم من الـ data[] اللي راجعة، وده تقريبي لأنها صفحة واحدة بس
+  // (10 عناصر من أصل reportTotal). لو حبيت رقم دقيق 100% لازم الباك إند
+  // يضيف approved/pending/rejected جوه summary زي types بالظبط.
+  const sourceForStatusCounts = reportSummary ? reportRows : lastTransactions;
+  const pendingTransactions = sourceForStatusCounts.filter((t) => t.status === "pending").length;
+  const approvedTransactions = sourceForStatusCounts.filter((t) => t.status === "approved").length;
+
+  // ✅ إجمالي المستلم / المرسل الشهر ده — من summary.types (دقيق ومش تقريبي)
+  const totalReceived = reportSummary
+    ? (reportSummary.types.deposit?.amount || 0) + (reportSummary.types.add?.amount || 0)
+    : lastTransactions
+        .filter((t) => t.type === "add" || t.type === "deposit")
+        .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+
+  const totalSent = reportSummary
+    ? (reportSummary.types.withdraw?.amount || 0) + (reportSummary.types.transfer?.amount || 0)
+    : lastTransactions
+        .filter((t) => t.type === "withdraw" || t.type === "transfer")
+        .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
 
   // ✅ الحسابات اللي رصيدها صفر
   const zeroBalances = balances.filter((b) => parseFloat(b.balance) === 0);
   const hasZeroBalance = zeroBalances.length > 0;
 
-  // ✅ تجهيز بيانات الشارت (رسم بياني) من الـ Report
-  // هنعرض بيانات الـ 6 أشهر الأخيرة
-  const chartData = reportData?.monthly?.slice(-6) || [];
-  const chartValues = chartData.map((m) => m.transfers);
+  // ============================================================
+  // ✅ بيانات الشارت — بقت مبنية على summary.daily (مش monthly اللي مش موجود أصلًا)
+  // بنعرض آخر 14 يوم بس عشان الشارت ميبقاش مزنوق
+  // ============================================================
+  const chartData = (reportSummary?.daily || []).slice(-14);
+  const chartValues = chartData.map((d) => d.transactions);
   const chartMax = Math.max(...chartValues, 1);
 
   // ✅ عرض حالة التحميل
@@ -250,9 +310,6 @@ function Dashboard() {
           >
             <ArrowDownToLine className="h-4 w-4" /> Deposit Funds
           </Link>
-          <button className="flex h-12 items-center gap-2 rounded-lg bg-secondary px-5 text-sm font-semibold">
-            More Actions
-          </button>
         </div>
       </div>
 
@@ -363,7 +420,10 @@ function Dashboard() {
           <h2 className="font-semibold">
             This Month{" "}
             <span className="text-sm font-normal text-muted-foreground">
-              ({new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })})
+              (
+              {reportSummary?.month ??
+                new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+              )
             </span>
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-4">
@@ -380,15 +440,15 @@ function Dashboard() {
             ))}
           </div>
 
-          {/* ✅ الشارت هنا بقى ديناميك بيجيب بيانات من الـ API */}
+          {/* ✅ الشارت بقى شغال على summary.daily (مش monthly اللي مش موجود في الـ API) */}
           <div className="mt-6 flex h-40 items-end gap-1.5">
             {chartData.length > 0 ? (
-              chartData.map((m, i) => (
+              chartData.map((d, i) => (
                 <div
                   key={i}
                   className="flex-1 rounded-t bg-[image:var(--gradient-primary)] opacity-85"
-                  style={{ height: `${(m.transfers / chartMax) * 100}%` }}
-                  title={`${m.monthName} ${m.year}: ${m.transfers} transfers`}
+                  style={{ height: `${(d.transactions / chartMax) * 100}%` }}
+                  title={`${d.day_name} ${d.day}: ${d.transactions} transfers ($${d.total_amount})`}
                 />
               ))
             ) : (
@@ -399,7 +459,7 @@ function Dashboard() {
           </div>
           <div className="mt-2 flex justify-between text-xs text-muted-foreground">
             {chartData.length > 0 ? (
-              chartData.map((m, i) => <span key={i}>{m.monthName.substring(0, 3)}</span>)
+              chartData.map((d, i) => <span key={i}>{d.day}</span>)
             ) : (
               <>
                 <span>No Data</span>

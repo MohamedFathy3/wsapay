@@ -1,5 +1,5 @@
+// src/services/settingsaccount.service.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/services/setting.service.ts
 import api from "@/lib/api";
 
 // ✅ تعريف الـ Type الجديد (حساب واحد بدل 3)
@@ -33,7 +33,6 @@ class SettingService {
   // ✅ 2. تحديث حساب بنكي موجود (PUT /api/setting/{id})
   async updateBankAccount(id: number, data: BankAccountPayload): Promise<any> {
     try {
-      // ✅ الرابط بقى /setting/{id} مباشرة
       const response = await api.put(`/bank-account/${id}`, data);
       return response.data;
     } catch (error) {
@@ -45,7 +44,6 @@ class SettingService {
   // ✅ 3. حذف حسابات بنكية (DELETE /api/setting/delete)
   async deleteBankAccounts(ids: number[]): Promise<any> {
     try {
-      // ✅ الرابط بقى /setting/delete
       const response = await api.delete("/bank-account/delete", {
         data: { ids: ids },
       });

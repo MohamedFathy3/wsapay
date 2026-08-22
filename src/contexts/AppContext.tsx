@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/contexts/AppContext.tsx
 import React, { createContext, useContext, ReactNode, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,7 +46,6 @@ interface AppContextType {
   lang: string;
   setLang: (lang: string) => void;
   bankAccounts: BankAccount[];
-  // ✅ إضافة refreshUser هنا
   refreshUser: () => Promise<void>;
 }
 
@@ -66,7 +64,9 @@ interface AppProviderProps {
 }
 
 const AppProviderInner = ({ children }: AppProviderProps) => {
-  const { user, token, isLoading, isAuthenticated, login, logout, error, checkAuth } = useAuth();
+  const authHook = useAuth();
+  const { user, token, isLoading, isAuthenticated, login, logout, error, refreshUser } = authHook;
+
   const { t, lang, setLang } = useLanguage();
 
   const [uiRole, setUiRole] = useState<UserRole>(() => {
@@ -101,11 +101,6 @@ const AppProviderInner = ({ children }: AppProviderProps) => {
       return typeof result === "string" ? result : key;
     }
     return key;
-  };
-
-  // ✅ دالة تحديث البيانات فوراً
-  const refreshUser = async () => {
-    await checkAuth();
   };
 
   useEffect(() => {
@@ -150,7 +145,7 @@ const AppProviderInner = ({ children }: AppProviderProps) => {
     lang,
     setLang,
     bankAccounts,
-    refreshUser, // ✅ تم إضافة refreshUser
+    refreshUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
