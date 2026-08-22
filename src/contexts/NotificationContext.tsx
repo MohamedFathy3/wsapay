@@ -9,7 +9,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { notificationService, Notification } from "@/services/notification.service";
+import { notificationService, Notification } from "@/services/Notification.service";
 import { useAuth } from "@/hooks/useAuth";
 
 interface NotificationContextType {
