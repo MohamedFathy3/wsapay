@@ -31,14 +31,6 @@ export default defineConfig({
       preset: "node-server",
       // ✅ ده اللي بيخلي الـ proxy يشتغل في الـ production build (node .output/server/index.mjs)
       // مش بس وقت vite dev. الـ vite.server.proxy بالأسفل بيفضل شغال للـ dev بس.
-      routeRules: {
-        "/api/**": {
-          proxy: `${apiTarget}/**`,
-        },
-        "/sanctum/**": {
-          proxy: `${sanctumTarget}/**`,
-        },
-      },
     },
   },
   vite: {
