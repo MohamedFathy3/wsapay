@@ -16,11 +16,29 @@ const getPackageVersion = (): string => {
   return (process.env.npm_package_version as string) || "1.0.0";
 };
 
+// نشيل أي / في الآخر عشان مانكررش الـ slashes وقت التجميع
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
+
+const apiTarget = trimTrailingSlash(getEnv("VITE_API_TARGET", "https://apipay.wsa-elite.com"));
+const sanctumTarget = trimTrailingSlash(
+  getEnv("VITE_SANCTUM_TARGET", "https://apipay.wsa-elite.com"),
+);
+
 export default defineConfig({
   tanstackStart: {
     // server: { entry: "server" },
     nitro: {
       preset: "node-server",
+      // ✅ ده اللي بيخلي الـ proxy يشتغل في الـ production build (node .output/server/index.mjs)
+      // مش بس وقت vite dev. الـ vite.server.proxy بالأسفل بيفضل شغال للـ dev بس.
+      routeRules: {
+        "/api/**": {
+          proxy: `${apiTarget}/**`,
+        },
+        "/sanctum/**": {
+          proxy: `${sanctumTarget}/**`,
+        },
+      },
     },
   },
   vite: {
@@ -31,7 +49,7 @@ export default defineConfig({
       allowedHosts: true, // ✅ صيغة array عشان تتأكد
       proxy: {
         "/api": {
-          target: getEnv("VITE_API_TARGET", "https://apipay.wsa-elite.com/"),
+          target: apiTarget,
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, getEnv("VITE_API_REWRITE_PATH", "/api")),
@@ -54,7 +72,7 @@ export default defineConfig({
           },
         },
         "/sanctum": {
-          target: getEnv("VITE_SANCTUM_TARGET", "https://apipay.wsa-elite.com/"),
+          target: sanctumTarget,
           changeOrigin: true,
           secure: false,
           configure: (proxy) => {
